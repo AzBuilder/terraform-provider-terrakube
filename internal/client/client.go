@@ -25,3 +25,9 @@ type VcsEntity struct {
 	Name        string `jsonapi:"attr,name"`
 	Description string `jsonapi:"attr,description"`
 }
+
+type SshEntity struct {
+	ID          string `jsonapi:"primary,ssh"`
+	Name        string `jsonapi:"attr,name"`
+	Description string `jsonapi:"attr,description"`
+}

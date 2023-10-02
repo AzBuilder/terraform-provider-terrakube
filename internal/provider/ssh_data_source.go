@@ -17,28 +17,28 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &VcsDataSource{}
-	_ datasource.DataSourceWithConfigure = &VcsDataSource{}
+	_ datasource.DataSource              = &SshDataSource{}
+	_ datasource.DataSourceWithConfigure = &SshDataSource{}
 )
 
-type VcsDataSourceModel struct {
+type SshDataSourceModel struct {
 	ID             types.String `tfsdk:"id"`
 	OrganizationId types.String `tfsdk:"organization_id"`
 	Name           types.String `tfsdk:"name"`
 	Description    types.String `tfsdk:"description"`
 }
 
-type VcsDataSource struct {
+type SshDataSource struct {
 	client   *http.Client
 	endpoint string
 	token    string
 }
 
-func NewVcsDataSource() datasource.DataSource {
-	return &VcsDataSource{}
+func NewSshDataSource() datasource.DataSource {
+	return &SshDataSource{}
 }
 
-func (d *VcsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, res *datasource.ConfigureResponse) {
+func (d *SshDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, res *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -46,7 +46,7 @@ func (d *VcsDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 	providerData, ok := req.ProviderData.(*TerrakubeConnectionData)
 	if !ok {
 		res.Diagnostics.AddError(
-			"Unexpected Vcs Data Source Configure Type",
+			"Unexpected Ssh Data Source Configure Type",
 			fmt.Sprintf("Expected *TerrakubeConnectionData got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
@@ -61,19 +61,19 @@ func (d *VcsDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 	d.endpoint = providerData.Endpoint
 	d.token = providerData.Token
 
-	tflog.Info(ctx, "Creating Vcs datasource")
+	tflog.Info(ctx, "Creating Ssh datasource")
 }
 
-func (d *VcsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vcs"
+func (d *SshDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_ssh"
 }
 
-func (d *VcsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *SshDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
-				Description: "Vcs Id",
+				Description: "Ssh Id",
 			},
 			"organization_id": schema.StringAttribute{
 				Required:    true,
@@ -81,48 +81,47 @@ func (d *VcsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, re
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
-				Description: "Vcs Name",
+				Description: "Ssh Name",
 			},
 			"description": schema.StringAttribute{
 				Computed:    true,
-				Description: "Vcs description information",
+				Description: "Ssh description information",
 			},
 		},
 	}
 }
 
-func (d *VcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state VcsDataSourceModel
+func (d *SshDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var state SshDataSourceModel
 
 	req.Config.Get(ctx, &state)
 
-	requestVcs, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/organization/%s/vcs?filter[vcs]=name==%s", d.endpoint, state.OrganizationId.ValueString(), state.Name.ValueString()), nil)
-	requestVcs.Header.Add("Authorization", fmt.Sprintf("Bearer %s", d.token))
-	requestVcs.Header.Add("Content-Type", "application/vnd.api+json")
+	requestSsh, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/organization/%s/ssh?filter[ssh]=name==%s", d.endpoint, state.OrganizationId.ValueString(), state.Name.ValueString()), nil)
+	requestSsh.Header.Add("Authorization", fmt.Sprintf("Bearer %s", d.token))
+	requestSsh.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating ssh request", fmt.Sprintf("Error creating team resource request: %s", err))
-		return
+		tflog.Error(ctx, "Error creating ssh datasource request")
 	}
 
-	responseVcs, err := d.client.Do(requestVcs)
+	responseSsh, err := d.client.Do(requestSsh)
 	if err != nil {
 		resp.Diagnostics.AddError("Error executing ssh request", fmt.Sprintf("Error executing ssh request: %s", err))
 		return
 	}
 
-	bodyResponse, err := io.ReadAll(responseVcs.Body)
+	body, err := io.ReadAll(responseSsh.Body)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading ssh response body", fmt.Sprintf("Error reading team resource response body: %s", err))
+		resp.Diagnostics.AddError("Error reading ssh response body", fmt.Sprintf("Error reading ssh response body: %s", err))
 	}
 
-	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
+	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(body)})
 
-	var vcss []interface{}
+	var sshList []interface{}
 
-	vcss, err = jsonapi.UnmarshalManyPayload(strings.NewReader(string(bodyResponse)), reflect.TypeOf(new(client.VcsEntity)))
+	sshList, err = jsonapi.UnmarshalManyPayload(strings.NewReader(string(body)), reflect.TypeOf(new(client.SshEntity)))
 
-	for _, vcs := range vcss {
-		data, _ := vcs.(*client.VcsEntity)
+	for _, ssh := range sshList {
+		data, _ := ssh.(*client.SshEntity)
 		state.ID = types.StringValue(data.ID)
 		state.Description = types.StringValue(data.Description)
 	}
