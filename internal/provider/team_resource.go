@@ -292,7 +292,7 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	bodyResponse, err = io.ReadAll(teamResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading team resource response")
+		resp.Diagnostics.AddError("Error reading team resource response body", fmt.Sprintf("Error reading team resource response body: %s", err))
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
