@@ -5,7 +5,9 @@ package provider
 
 import (
 	"context"
-	"net/http"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -14,15 +16,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure ScaffoldingProvider satisfies various provider interfaces.
-var _ provider.Provider = &ScaffoldingProvider{}
+// Ensure TerrakubeProvider satisfies various provider interfaces.
+var _ provider.Provider = &TerrakubeProvider{}
 
-// ScaffoldingProvider defines the provider implementation.
-type ScaffoldingProvider struct {
+// TerrakubeProvider defines the provider implementation.
+type TerrakubeProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
 	version string
+}
+
+// hashicupsProviderModel maps provider schema data to a Go type.
+type TerrakubeProviderModel struct {
+	Endpoint types.String `tfsdk:"endpoint"`
+	Token    types.String `tfsdk:"token"`
 }
 
 // ScaffoldingProviderModel describes the provider data model.
@@ -30,56 +38,135 @@ type ScaffoldingProviderModel struct {
 	Endpoint types.String `tfsdk:"endpoint"`
 }
 
-func (p *ScaffoldingProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "scaffolding"
+type TerrakubeConnectionData struct {
+	Endpoint string
+	Token    string
+}
+
+func New(version string) func() provider.Provider {
+	return func() provider.Provider {
+		return &TerrakubeProvider{
+			version: version,
+		}
+	}
+}
+
+func (p *TerrakubeProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "terrakube"
 	resp.Version = p.version
 }
 
-func (p *ScaffoldingProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *TerrakubeProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Example provider attribute",
-				Optional:            true,
+				Required:    true,
+				Description: "Terrakube API Endpoint. Example: https://terrakube-api.minikube.net",
+			},
+			"token": schema.StringAttribute{
+				Required:    true,
+				Description: "Personal Access Token generated in Terrakube UI (https://docs.terrakube.io/user-guide/organizations/api-tokens)",
 			},
 		},
 	}
 }
 
-func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var data ScaffoldingProviderModel
+func (p *TerrakubeProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	tflog.Info(ctx, "Retrieving provider data from configuration")
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	var config TerrakubeProviderModel
+	diags := req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.Endpoint.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("endpoint"),
+			"Unknown Terrakube API Host",
+			"The provider cannot create the Terrakube API client as there is an unknown configuration value for the Terrakube API host. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the TERRAKUBE_HOSTNAME environment variable.",
+		)
+	}
+
+	if config.Token.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("token"),
+			"Unknown Terrakube API token",
+			"The provider cannot create the Terrakube API client as there is an unknown configuration value for the Terrakube API username. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the TERRAKUBE_TOKEN environment variable.",
+		)
+	}
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Configuration values are now available.
-	// if data.Endpoint.IsNull() { /* ... */ }
+	// Default values to environment variables, but override
+	// with Terraform configuration value if set.
 
-	// Example client configuration for data sources and resources
-	client := http.DefaultClient
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	endpoint := os.Getenv("TERRAKUBE_ENDPOINT")
+	token := os.Getenv("TERRAKUBE_TOKEN")
+
+	if !config.Endpoint.IsNull() {
+		endpoint = config.Endpoint.ValueString()
+	}
+
+	if !config.Token.IsNull() {
+		token = config.Token.ValueString()
+	}
+
+	// If any of the expected configurations are missing, return
+	// errors with provider-specific guidance.
+
+	if endpoint == "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("endpoint"),
+			"Missing Terrakube API Host",
+			"The provider cannot create the Terrakube API client as there is a missing or empty value for the Terrakube API host. "+
+				"Set the host value in the configuration or use the TERRAKUBE_ENDPOINT environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+
+	if token == "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("token"),
+			"Missing HashiCups API Username",
+			"The provider cannot create the Terrakube API client as there is a missing or empty value for the Terrakube API username. "+
+				"Set the username value in the configuration or use the TERRAKUBE_ENDPOINT environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	connection := new(TerrakubeConnectionData)
+
+	connection.Endpoint = endpoint
+	connection.Token = token
+
+	resp.DataSourceData = connection
+	resp.ResourceData = connection
+
+	ctx = tflog.SetField(ctx, "terrakube_endpoint", endpoint)
+	ctx = tflog.SetField(ctx, "terrakube_token", token)
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "terrakube_token")
+
+	tflog.Info(ctx, "Creating Terrakube client information", map[string]any{"success": true})
 }
 
-func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *TerrakubeProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewExampleResource,
+		NewTeamResource,
 	}
 }
 
-func (p *ScaffoldingProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *TerrakubeProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewExampleDataSource,
-	}
-}
-
-func New(version string) func() provider.Provider {
-	return func() provider.Provider {
-		return &ScaffoldingProvider{
-			version: version,
-		}
+		NewOrganizationDataSource,
 	}
 }
