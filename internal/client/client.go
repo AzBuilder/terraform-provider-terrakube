@@ -19,3 +19,9 @@ type TeamEntity struct {
 	ManageVcs       bool   `jsonapi:"attr,manageVcs"`
 	ManageTemplate  bool   `jsonapi:"attr,manageTemplate"`
 }
+
+type VcsEntity struct {
+	ID          string `jsonapi:"primary,vcs"`
+	Name        string `jsonapi:"attr,name"`
+	Description string `jsonapi:"attr,description"`
+}
