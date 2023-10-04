@@ -31,3 +31,11 @@ type SshEntity struct {
 	Name        string `jsonapi:"attr,name"`
 	Description string `jsonapi:"attr,description"`
 }
+
+type ModuleEntity struct {
+	ID          string `jsonapi:"primary,module"`
+	Name        string `jsonapi:"attr,name"`
+	Description string `jsonapi:"attr,description"`
+	Provider    string `jsonapi:"attr,provider"`
+	Source      string `jsonapi:"attr,source"`
+}
