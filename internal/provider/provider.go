@@ -162,6 +162,7 @@ func (p *TerrakubeProvider) Configure(ctx context.Context, req provider.Configur
 func (p *TerrakubeProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewTeamResource,
+		NewModuleResource,
 	}
 }
 
