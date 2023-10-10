@@ -22,8 +22,9 @@ terraform {
 }
 
 provider "terrakube" {
-  endpoint = "http://terrakube-api.minikube.net"
-  token    = "12345"
+  endpoint             = "http://terrakube-api.minikube.net"
+  token                = "12345"
+  insecure_http_client = true
 }
 ```
 
@@ -34,3 +35,7 @@ provider "terrakube" {
 
 - `endpoint` (String) Terrakube API Endpoint. Example: https://terrakube-api.minikube.net
 - `token` (String) Personal Access Token generated in Terrakube UI (https://docs.terrakube.io/user-guide/organizations/api-tokens)
+
+### Optional
+
+- `insecure_http_client` (Boolean) Disable https certificate validation

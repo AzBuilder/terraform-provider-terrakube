@@ -52,11 +52,17 @@ func (d *OrganizationDataSource) Configure(ctx context.Context, req datasource.C
 		return
 	}
 
-	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	client := http.Client{Transport: customTransport}
-
-	d.client = &client
+	if providerData.InsecureHttpClient {
+		if custom, ok := http.DefaultTransport.(*http.Transport); ok {
+			customTransport := custom.Clone()
+			customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+			d.client = &http.Client{Transport: customTransport}
+		} else {
+			d.client = &http.Client{}
+		}
+	} else {
+		d.client = &http.Client{}
+	}
 	d.endpoint = providerData.Endpoint
 	d.token = providerData.Token
 
@@ -114,6 +120,11 @@ func (d *OrganizationDataSource) Read(ctx context.Context, req datasource.ReadRe
 	var orgs []interface{}
 
 	orgs, err = jsonapi.UnmarshalManyPayload(strings.NewReader(string(body)), reflect.TypeOf(new(client.OrganizationEntity)))
+
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to unmarshal payload", fmt.Sprintf("Unable to marshal payload: %s", err))
+		return
+	}
 
 	for _, organization := range orgs {
 		data, _ := organization.(*client.OrganizationEntity)
