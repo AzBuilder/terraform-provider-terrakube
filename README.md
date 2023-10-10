@@ -21,6 +21,11 @@ The Terrakube Terraform Provider allows managing resources within your Terrakube
 go install .
 ```
 
+Generate Docs
+```shell
+go generate ./...
+```
+
 ## Usage Example
 
 ```hcl
