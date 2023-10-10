@@ -1,6 +1,10 @@
-# Terraform Provider Terrakube
+<a href="https://terraform.io">
+    <img src=".github/tf.png" alt="Terraform logo" title="Terraform" align="left" height="50" />
+</a>
 
-**THIS IS WORK IN PROGRESS AND IT IS NOT STABLE**
+# Terraform Provider for Terrakube
+
+The Terrakube Terraform Provider allows managing resources within your Terrakube installation.
 
 ## Requirements
 
@@ -10,9 +14,79 @@
 ## Building The Provider
 
 1. Clone the repository
-1. Enter the repository directory
-1. Build the provider using the Go `install` command:
+2. Enter the repository directory
+3. Build the provider using the Go `install` command:
 
 ```shell
-go install
+go install .
 ```
+
+## Usage Example
+
+```hcl
+terraform {
+  required_providers {
+    terrakube = {
+      source = "registry.terraform.io/alfespa17/terrakube"
+    }
+  }
+}
+
+provider "terrakube" {
+  endpoint = "http://terrakube-api.minikube.net"
+  token    = "(PERSONAL ACCESS TOKEN OR TEAM TOKEN)"
+}
+
+data "terrakube_organization" "org" {
+  name = "simple"
+}
+
+data "terrakube_vcs" "vcs" {
+  name            = "sample_vcs"
+  organization_id = data.terrakube_organization.org.id
+}
+
+data "terrakube_ssh" "ssh" {
+  name            = "sample_ssh"
+  organization_id = data.terrakube_organization.org.id
+}
+
+resource "terrakube_team" "team" {
+  name             = "TERRAKUBE_SUPER_ADMIN"
+  organization_id  = data.terrakube_vcs.vcs.organization_id
+  manage_workspace = false
+  manage_module    = false
+  manage_provider  = true
+  manage_vcs       = true
+  manage_template  = true
+}
+
+resource "terrakube_module" "module1" {
+  name            = "module_public_connection"
+  organization_id = data.terrakube_ssh.ssh.organization_id
+  description     = "module_public_connection"
+  provider_name   = "aws"
+  source          = "https://github.com/terraform-aws-modules/terraform-aws-vpc.git"
+}
+
+resource "terrakube_module" "module2" {
+  name            = "module_vcs_connection"
+  organization_id = data.terrakube_ssh.ssh.organization_id
+  description     = "module_vcs_connection"
+  provider_name   = "aws"
+  source          = "https://github.com/terraform-aws-modules/super_private.git"
+  vcs_id          = data.terrakube_vcs.vcs.id
+}
+
+resource "terrakube_module" "module3" {
+  name            = "module_ssh_connection"
+  organization_id = data.terrakube_ssh.ssh.organization_id
+  description     = "module_ssh_connection"
+  provider_name   = "aws"
+  source          = "https://github.com/terraform-aws-modules/super_private.git"
+  ssh_id          = data.terrakube_ssh.ssh.id
+}
+```
+
+* [Terrakube Docs](https://docs.terrakube.io/).
+* [Terrakube API Docs](https://docs.terrakube.io/api/methods).
