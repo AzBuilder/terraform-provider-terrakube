@@ -29,18 +29,15 @@ type TerrakubeProvider struct {
 
 // hashicupsProviderModel maps provider schema data to a Go type.
 type TerrakubeProviderModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
-	Token    types.String `tfsdk:"token"`
-}
-
-// ScaffoldingProviderModel describes the provider data model.
-type ScaffoldingProviderModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
+	Endpoint           types.String `tfsdk:"endpoint"`
+	Token              types.String `tfsdk:"token"`
+	InsecureHttpClient types.Bool   `tfsdk:"insecure_http_client"`
 }
 
 type TerrakubeConnectionData struct {
-	Endpoint string
-	Token    string
+	Endpoint           string
+	Token              string
+	InsecureHttpClient bool
 }
 
 func New(version string) func() provider.Provider {
@@ -66,6 +63,10 @@ func (p *TerrakubeProvider) Schema(ctx context.Context, req provider.SchemaReque
 			"token": schema.StringAttribute{
 				Required:    true,
 				Description: "Personal Access Token generated in Terrakube UI (https://docs.terrakube.io/user-guide/organizations/api-tokens)",
+			},
+			"insecure_http_client": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Disable https certificate validation",
 			},
 		},
 	}
@@ -108,6 +109,7 @@ func (p *TerrakubeProvider) Configure(ctx context.Context, req provider.Configur
 
 	endpoint := os.Getenv("TERRAKUBE_ENDPOINT")
 	token := os.Getenv("TERRAKUBE_TOKEN")
+	insecureHttpClient := false
 
 	if !config.Endpoint.IsNull() {
 		endpoint = config.Endpoint.ValueString()
@@ -115,6 +117,10 @@ func (p *TerrakubeProvider) Configure(ctx context.Context, req provider.Configur
 
 	if !config.Token.IsNull() {
 		token = config.Token.ValueString()
+	}
+
+	if !config.InsecureHttpClient.IsNull() {
+		insecureHttpClient = config.InsecureHttpClient.ValueBool()
 	}
 
 	// If any of the expected configurations are missing, return
@@ -148,6 +154,7 @@ func (p *TerrakubeProvider) Configure(ctx context.Context, req provider.Configur
 
 	connection.Endpoint = endpoint
 	connection.Token = token
+	connection.InsecureHttpClient = insecureHttpClient
 
 	resp.DataSourceData = connection
 	resp.ResourceData = connection

@@ -104,11 +104,18 @@ func (r *TeamResource) Configure(ctx context.Context, req resource.ConfigureRequ
 		return
 	}
 
-	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	client := http.Client{Transport: customTransport}
+	if providerData.InsecureHttpClient {
+		if custom, ok := http.DefaultTransport.(*http.Transport); ok {
+			customTransport := custom.Clone()
+			customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+			r.client = &http.Client{Transport: customTransport}
+		} else {
+			r.client = &http.Client{}
+		}
+	} else {
+		r.client = &http.Client{}
+	}
 
-	r.client = &client
 	r.endpoint = providerData.Endpoint
 	r.token = providerData.Token
 
@@ -134,7 +141,12 @@ func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	var out = new(bytes.Buffer)
-	jsonapi.MarshalPayload(out, bodyRequest)
+	err := jsonapi.MarshalPayload(out, bodyRequest)
+
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to marshal payload", fmt.Sprintf("Unable to marshal payload: %s", err))
+		return
+	}
 
 	teamRequest, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/v1/organization/%s/team", r.endpoint, plan.OrganizationId.ValueString()), strings.NewReader(out.String()))
 	teamRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
@@ -253,7 +265,12 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	var out = new(bytes.Buffer)
-	jsonapi.MarshalPayload(out, bodyRequest)
+	err := jsonapi.MarshalPayload(out, bodyRequest)
+
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to marshal payload", fmt.Sprintf("Unable to marshal payload: %s", err))
+		return
+	}
 
 	teamRequest, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("%s/api/v1/organization/%s/team/%s", r.endpoint, state.OrganizationId.ValueString(), state.ID.ValueString()), strings.NewReader(out.String()))
 	teamRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))

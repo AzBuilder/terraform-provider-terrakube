@@ -101,11 +101,18 @@ func (r *ModuleResource) Configure(ctx context.Context, req resource.ConfigureRe
 		return
 	}
 
-	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	client := http.Client{Transport: customTransport}
+	if providerData.InsecureHttpClient {
+		if custom, ok := http.DefaultTransport.(*http.Transport); ok {
+			customTransport := custom.Clone()
+			customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+			r.client = &http.Client{Transport: customTransport}
+		} else {
+			r.client = &http.Client{}
+		}
+	} else {
+		r.client = &http.Client{}
+	}
 
-	r.client = &client
 	r.endpoint = providerData.Endpoint
 	r.token = providerData.Token
 
@@ -139,7 +146,12 @@ func (r *ModuleResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	var out = new(bytes.Buffer)
-	jsonapi.MarshalPayload(out, bodyRequest)
+	err := jsonapi.MarshalPayload(out, bodyRequest)
+
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to marshal payload", fmt.Sprintf("Unable to marshal payload: %s", err))
+		return
+	}
 
 	tflog.Info(ctx, fmt.Sprintf("Body Request: %s", out.String()))
 
@@ -276,7 +288,12 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	var out = new(bytes.Buffer)
-	jsonapi.MarshalPayload(out, bodyRequest)
+	err := jsonapi.MarshalPayload(out, bodyRequest)
+
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to marshal payload", fmt.Sprintf("Unable to marshal payload: %s", err))
+		return
+	}
 
 	moduleRequest, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("%s/api/v1/organization/%s/module/%s", r.endpoint, state.OrganizationId.ValueString(), state.ID.ValueString()), strings.NewReader(out.String()))
 	moduleRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))

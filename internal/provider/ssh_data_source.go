@@ -53,11 +53,17 @@ func (d *SshDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 		return
 	}
 
-	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	client := http.Client{Transport: customTransport}
-
-	d.client = &client
+	if providerData.InsecureHttpClient {
+		if custom, ok := http.DefaultTransport.(*http.Transport); ok {
+			customTransport := custom.Clone()
+			customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+			d.client = &http.Client{Transport: customTransport}
+		} else {
+			d.client = &http.Client{}
+		}
+	} else {
+		d.client = &http.Client{}
+	}
 	d.endpoint = providerData.Endpoint
 	d.token = providerData.Token
 
@@ -119,6 +125,11 @@ func (d *SshDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	var sshList []interface{}
 
 	sshList, err = jsonapi.UnmarshalManyPayload(strings.NewReader(string(body)), reflect.TypeOf(new(client.SshEntity)))
+
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to unmarshal payload", fmt.Sprintf("Unable to unmarshal payload: %s", err))
+		return
+	}
 
 	for _, ssh := range sshList {
 		data, _ := ssh.(*client.SshEntity)

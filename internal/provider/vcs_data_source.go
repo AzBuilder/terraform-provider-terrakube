@@ -53,11 +53,18 @@ func (d *VcsDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 		return
 	}
 
-	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	client := http.Client{Transport: customTransport}
+	if providerData.InsecureHttpClient {
+		if custom, ok := http.DefaultTransport.(*http.Transport); ok {
+			customTransport := custom.Clone()
+			customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+			d.client = &http.Client{Transport: customTransport}
+		} else {
+			d.client = &http.Client{}
+		}
+	} else {
+		d.client = &http.Client{}
+	}
 
-	d.client = &client
 	d.endpoint = providerData.Endpoint
 	d.token = providerData.Token
 
@@ -120,6 +127,11 @@ func (d *VcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	var vcss []interface{}
 
 	vcss, err = jsonapi.UnmarshalManyPayload(strings.NewReader(string(bodyResponse)), reflect.TypeOf(new(client.VcsEntity)))
+
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to un marshal payload", fmt.Sprintf("Unable to unmarshal payload: %s", err))
+		return
+	}
 
 	for _, vcs := range vcss {
 		data, _ := vcs.(*client.VcsEntity)
