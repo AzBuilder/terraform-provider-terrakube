@@ -33,9 +33,11 @@ type SshEntity struct {
 }
 
 type ModuleEntity struct {
-	ID          string `jsonapi:"primary,module"`
-	Name        string `jsonapi:"attr,name"`
-	Description string `jsonapi:"attr,description"`
-	Provider    string `jsonapi:"attr,provider"`
-	Source      string `jsonapi:"attr,source"`
+	ID          string     `jsonapi:"primary,module"`
+	Name        string     `jsonapi:"attr,name"`
+	Description string     `jsonapi:"attr,description"`
+	Provider    string     `jsonapi:"attr,provider"`
+	Source      string     `jsonapi:"attr,source"`
+	Vcs         *VcsEntity `jsonapi:"relation,vcs,omitempty"`
+	Ssh         *SshEntity `jsonapi:"relation,ssh,omitempty"`
 }

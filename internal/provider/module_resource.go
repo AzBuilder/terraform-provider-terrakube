@@ -35,6 +35,8 @@ type ModuleResourceModel struct {
 	Description    types.String `tfsdk:"description"`
 	ProviderName   types.String `tfsdk:"provider_name"`
 	Source         types.String `tfsdk:"source"`
+	VcsId          types.String `tfsdk:"vcs_id"`
+	SshId          types.String `tfsdk:"ssh_id"`
 }
 
 func NewModuleResource() resource.Resource {
@@ -71,6 +73,14 @@ func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"source": schema.StringAttribute{
 				Required:    true,
 				Description: "Source (git using https or ssh protocol)",
+			},
+			"vcs_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "VCS connection ID for private modules",
+			},
+			"ssh_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "Ssh connection ID for private modules",
 			},
 		},
 	}
@@ -118,8 +128,20 @@ func (r *ModuleResource) Create(ctx context.Context, req resource.CreateRequest,
 		Source:      plan.Source.ValueString(),
 	}
 
+	if !plan.VcsId.IsNull() {
+		tflog.Info(ctx, fmt.Sprintf("Module using Vcs connection id: %s", plan.VcsId.ValueString()))
+		bodyRequest.Vcs = &client.VcsEntity{ID: plan.VcsId.ValueString()}
+	}
+
+	if !plan.SshId.IsNull() {
+		tflog.Info(ctx, fmt.Sprintf("Module using Ssh connection id: %s", plan.SshId.ValueString()))
+		bodyRequest.Ssh = &client.SshEntity{ID: plan.SshId.ValueString()}
+	}
+
 	var out = new(bytes.Buffer)
 	jsonapi.MarshalPayload(out, bodyRequest)
+
+	tflog.Info(ctx, fmt.Sprintf("Body Request: %s", out.String()))
 
 	moduleRequest, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/v1/organization/%s/module", r.endpoint, plan.OrganizationId.ValueString()), strings.NewReader(out.String()))
 	moduleRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
@@ -207,6 +229,14 @@ func (r *ModuleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	state.ProviderName = types.StringValue(module.Provider)
 	state.Source = types.StringValue(module.Source)
 
+	if module.Vcs != nil {
+		state.VcsId = types.StringValue(module.Vcs.ID)
+	}
+
+	if module.Ssh != nil {
+		state.SshId = types.StringValue(module.Ssh.ID)
+	}
+
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -233,6 +263,16 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 		Description: plan.Name.ValueString(),
 		Provider:    plan.ProviderName.ValueString(),
 		Source:      plan.Source.ValueString(),
+	}
+
+	if !plan.VcsId.IsNull() {
+		tflog.Info(ctx, fmt.Sprintf("Module using Vcs connection id: %s", plan.VcsId.ValueString()))
+		bodyRequest.Vcs = &client.VcsEntity{ID: plan.VcsId.ValueString()}
+	}
+
+	if !plan.SshId.IsNull() {
+		tflog.Info(ctx, fmt.Sprintf("Module using Ssh connection id: %s", plan.SshId.ValueString()))
+		bodyRequest.Ssh = &client.SshEntity{ID: plan.SshId.ValueString()}
 	}
 
 	var out = new(bytes.Buffer)
