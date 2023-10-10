@@ -3,6 +3,6 @@ data "terrakube_organization" "org" {
 }
 
 data "terrakube_ssh" "ssh" {
-  name = "sample"
+  name            = "sample"
   organization_id = data.terrakube_organization.org.id
 }

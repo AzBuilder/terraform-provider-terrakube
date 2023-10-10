@@ -8,5 +8,5 @@ terraform {
 
 provider "terrakube" {
   endpoint = "http://terrakube-api.minikube.net"
-  token    = "XXX"
+  token    = "12345"
 }
