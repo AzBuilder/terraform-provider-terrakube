@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     terrakube = {
-      source = "registry.terraform.io/alfespa17/terrakube"
+      source = "AzBuilder/terrakube"
     }
   }
 }

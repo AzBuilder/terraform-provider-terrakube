@@ -32,7 +32,7 @@ go generate ./...
 terraform {
   required_providers {
     terrakube = {
-      source = "registry.terraform.io/alfespa17/terrakube"
+      source = "registry.terraform.io/AzBuilder/terrakube"
     }
   }
 }
