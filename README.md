@@ -2,7 +2,7 @@
     <img src=".github/tf.png" alt="Terraform logo" title="Terraform" align="left" height="50" />
 </a>
 
-# Terraform Provider for Terrakube
+# Terraform Provider for Terrakube  
 
 The Terrakube Terraform Provider allows managing resources within your Terrakube installation.
 
@@ -19,10 +19,6 @@ The Terrakube Terraform Provider allows managing resources within your Terrakube
 
 ```shell
 go install .
-```
-
-Generate Docs
-```shell
 go generate ./...
 ```
 
