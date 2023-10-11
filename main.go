@@ -34,6 +34,7 @@ func main() {
 	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
+	
 	opts := providerserver.ServeOpts{
 		Address: "registry.terraform.io/AzBuilder/terrakube",
 		Debug:   debug,
