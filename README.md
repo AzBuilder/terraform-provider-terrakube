@@ -25,10 +25,22 @@ go generate ./...
 ## Usage Example
 
 ```hcl
-ººº
+terraform {
+  required_providers {
+    terrakube = {
+      source = "AzBuilder/terrakube"
+    }
+  }
+}
+
+provider "terrakube" {
+  endpoint = "http://terrakube-api.minikube.net"
+  token    = "(PERSONAL ACCESS TOKEN OR TEAM TOKEN)"
+}
+
 resource "terrakube_organization" "org_sample" {
   name           = "unique-org-name"
-  description    = "my super descripton"
+  description    = "my super description"
   execution_mode = "local"
 }
 
