@@ -38,6 +38,12 @@ provider "terrakube" {
   token    = "(PERSONAL ACCESS TOKEN OR TEAM TOKEN)"
 }
 
+resource "terrakube_organization" "org_sample" {
+  name           = "unique-org-name"
+  description    = "my super description"
+  execution_mode = "local"
+}
+
 data "terrakube_organization" "org" {
   name = "simple"
 }
