@@ -170,6 +170,7 @@ func (p *TerrakubeProvider) Resources(ctx context.Context) []func() resource.Res
 	return []func() resource.Resource{
 		NewTeamResource,
 		NewModuleResource,
+		NewOrganizationResource,
 	}
 }
 
