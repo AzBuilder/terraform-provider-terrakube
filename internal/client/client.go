@@ -35,6 +35,16 @@ type WorkspaceEntity struct {
 	Deleted       bool   `jsonapi:"attr,deleted"`
 }
 
+type WorkspaceVariableEntity struct {
+	ID          string `jsonapi:"primary,variable"`
+	Key         string `jsonapi:"attr,key"`
+	Value       string `jsonapi:"attr,value"`
+	Description string `jsonapi:"attr,description"`
+	Category    string `jsonapi:"attr,category"`
+	Sensitive   bool   `jsonapi:"attr,sensitive"`
+	Hcl         bool   `jsonapi:"attr,hcl"`
+}
+
 type VcsEntity struct {
 	ID          string `jsonapi:"primary,vcs"`
 	Name        string `jsonapi:"attr,name"`
