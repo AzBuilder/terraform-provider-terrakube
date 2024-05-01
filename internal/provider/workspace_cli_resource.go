@@ -341,7 +341,12 @@ func (r *WorkspaceCliResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	ll := len(chars)
 	b := make([]byte, 4)
-	rand.Read(b)
+
+	if _, err := rand.Read(b); err != nil {
+		resp.Diagnostics.AddError("Error generating random string to delete workspace", fmt.Sprintf("Error generating random string to delete workspace: %s", err))
+		return
+	}
+
 	for i := 0; i < 4; i++ {
 		b[i] = chars[int(b[i])%ll]
 	}
