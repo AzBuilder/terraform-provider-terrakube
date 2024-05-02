@@ -190,6 +190,7 @@ func (r *WorkspaceVariableResource) Create(ctx context.Context, req resource.Cre
 	plan.Category = types.StringValue(workspaceVariable.Category)
 	plan.Sensitive = types.BoolValue(workspaceVariable.Sensitive)
 	plan.Hcl = types.BoolValue(workspaceVariable.Hcl)
+	plan.ID = types.StringValue(workspaceVariable.ID)
 
 	tflog.Info(ctx, "workspace variable Resource Created", map[string]any{"success": true})
 
