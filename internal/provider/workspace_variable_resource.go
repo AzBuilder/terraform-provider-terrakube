@@ -184,7 +184,6 @@ func (r *WorkspaceVariableResource) Create(ctx context.Context, req resource.Cre
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
-	plan.ID = types.StringValue(workspaceVariable.ID)
 	plan.Key = types.StringValue(workspaceVariable.Key)
 	plan.Value = types.StringValue(workspaceVariable.Value)
 	plan.Description = types.StringValue(workspaceVariable.Description)

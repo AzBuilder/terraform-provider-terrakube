@@ -232,7 +232,6 @@ func (r *WorkspaceCliResource) Read(ctx context.Context, req resource.ReadReques
 	state.ExecutionMode = types.StringValue(workspace.ExecutionMode)
 	state.IaCType = types.StringValue(workspace.IaCType)
 	state.IaCVersion = types.StringValue(workspace.IaCVersion)
-	state.ID = types.StringValue(workspace.ID)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

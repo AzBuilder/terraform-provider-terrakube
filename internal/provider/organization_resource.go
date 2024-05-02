@@ -206,7 +206,6 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 
 	state.Description = types.StringValue(organization.Description)
 	state.ExecutionMode = types.StringValue(organization.ExecutionMode)
-	state.ID = types.StringValue(organization.ID)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
