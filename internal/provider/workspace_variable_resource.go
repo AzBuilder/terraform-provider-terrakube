@@ -6,6 +6,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/google/jsonapi"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"io"
 	"net/http"
 	"strings"
@@ -54,6 +56,9 @@ func (r *WorkspaceVariableResource) Schema(ctx context.Context, req resource.Sch
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "Variable Id",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"organization_id": schema.StringAttribute{
 				Required:    true,
@@ -179,13 +184,13 @@ func (r *WorkspaceVariableResource) Create(ctx context.Context, req resource.Cre
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
-	plan.ID = types.StringValue(workspaceVariable.ID)
 	plan.Key = types.StringValue(workspaceVariable.Key)
 	plan.Value = types.StringValue(workspaceVariable.Value)
 	plan.Description = types.StringValue(workspaceVariable.Description)
 	plan.Category = types.StringValue(workspaceVariable.Category)
 	plan.Sensitive = types.BoolValue(workspaceVariable.Sensitive)
 	plan.Hcl = types.BoolValue(workspaceVariable.Hcl)
+	plan.ID = types.StringValue(workspaceVariable.ID)
 
 	tflog.Info(ctx, "workspace variable Resource Created", map[string]any{"success": true})
 
@@ -236,6 +241,7 @@ func (r *WorkspaceVariableResource) Read(ctx context.Context, req resource.ReadR
 	state.Category = types.StringValue(workspaceVariable.Category)
 	state.Sensitive = types.BoolValue(workspaceVariable.Sensitive)
 	state.Hcl = types.BoolValue(workspaceVariable.Hcl)
+	state.ID = types.StringValue(workspaceVariable.ID)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

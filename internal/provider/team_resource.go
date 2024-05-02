@@ -6,6 +6,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/google/jsonapi"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"io"
 	"net/http"
 	"strings"
@@ -53,6 +55,9 @@ func (r *TeamResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "Team Id",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"organization_id": schema.StringAttribute{
 				Required:    true,
