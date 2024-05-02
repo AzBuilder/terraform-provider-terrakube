@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"io"
@@ -53,6 +55,9 @@ func (r *WorkspaceCliResource) Schema(ctx context.Context, req resource.SchemaRe
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "Workspace CLI Id",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"organization_id": schema.StringAttribute{
 				Required:    true,
@@ -227,6 +232,7 @@ func (r *WorkspaceCliResource) Read(ctx context.Context, req resource.ReadReques
 	state.ExecutionMode = types.StringValue(workspace.ExecutionMode)
 	state.IaCType = types.StringValue(workspace.IaCType)
 	state.IaCVersion = types.StringValue(workspace.IaCVersion)
+	state.ID = types.StringValue(workspace.ID)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -318,7 +324,7 @@ func (r *WorkspaceCliResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	plan.ID = types.StringValue(state.ID.ValueString())
-	plan.Name = types.StringValue(state.Name.ValueString())
+	plan.Name = types.StringValue(workspace.Name)
 	plan.Description = types.StringValue(workspace.Description)
 	plan.IaCType = types.StringValue(workspace.IaCType)
 	plan.IaCVersion = types.StringValue(workspace.IaCVersion)

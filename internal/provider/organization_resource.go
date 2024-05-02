@@ -6,6 +6,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/google/jsonapi"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"io"
 	"net/http"
 	"strings"
@@ -49,6 +51,9 @@ func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRe
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "Organization Id",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
@@ -201,6 +206,7 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 
 	state.Description = types.StringValue(organization.Description)
 	state.ExecutionMode = types.StringValue(organization.ExecutionMode)
+	state.ID = types.StringValue(organization.ID)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
