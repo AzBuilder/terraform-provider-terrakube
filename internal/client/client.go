@@ -45,6 +45,16 @@ type WorkspaceVariableEntity struct {
 	Hcl         bool   `jsonapi:"attr,hcl"`
 }
 
+type OrganizationVariableEntity struct {
+	ID          string `jsonapi:"primary,globalvar"`
+	Key         string `jsonapi:"attr,key"`
+	Value       string `jsonapi:"attr,value"`
+	Description string `jsonapi:"attr,description"`
+	Category    string `jsonapi:"attr,category"`
+	Sensitive   *bool  `jsonapi:"attr,sensitive,omitempty"`
+	Hcl         bool   `jsonapi:"attr,hcl"`
+}
+
 type VcsEntity struct {
 	ID          string `jsonapi:"primary,vcs"`
 	Name        string `jsonapi:"attr,name"`
