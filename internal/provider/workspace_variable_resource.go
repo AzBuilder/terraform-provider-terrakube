@@ -269,7 +269,7 @@ func (r *WorkspaceVariableResource) Update(ctx context.Context, req resource.Upd
 		Description: plan.Description.ValueString(),
 		Category:    plan.Category.ValueString(),
 		Sensitive:   plan.Sensitive.ValueBool(),
-		Hcl:         state.Hcl.ValueBool(),
+		Hcl:         plan.Hcl.ValueBool(),
 		ID:          state.ID.ValueString(),
 	}
 

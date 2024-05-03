@@ -173,6 +173,7 @@ func (p *TerrakubeProvider) Resources(ctx context.Context) []func() resource.Res
 		NewOrganizationResource,
 		NewWorkspaceCliResource,
 		NewWorkspaceVariableResource,
+		NewOrganizationVariableResource,
 	}
 }
 
