@@ -3,6 +3,7 @@ package provider
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"crypto/tls"
 	"fmt"
 	"github.com/google/jsonapi"
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"terraform-provider-terrakube/internal/client"
 
@@ -311,13 +313,36 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
+	var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+
+	ll := len(chars)
+	b := make([]byte, 4)
+
+	if _, err := rand.Read(b); err != nil {
+		resp.Diagnostics.AddError("Error generating random string to delete workspace", fmt.Sprintf("Error generating random string to delete workspace: %s", err))
+		return
+	}
+
+	for i := 0; i < 4; i++ {
+		b[i] = chars[int(b[i])%ll]
+	}
+
+	tflog.Info(ctx, "Send patch request to mark organization as deleted...")
+	tflog.Info(ctx, fmt.Sprintf("%s_DEL_%s", data.Name.ValueString(), string(b)))
+
 	bodyRequest := &client.OrganizationEntity{
-		Disabled: true,
-		ID:       data.ID.ValueString(),
+		Disabled:      true,
+		Name:          fmt.Sprintf("%s_DEL_%s", data.Name.ValueString(), string(b)),
+		ID:            data.ID.ValueString(),
+		ExecutionMode: data.ExecutionMode.ValueString(),
+		Description:   "Deleted from terraform provider",
 	}
 
 	var out = new(bytes.Buffer)
 	err := jsonapi.MarshalPayload(out, bodyRequest)
+
+	tflog.Info(ctx, "Request Body Delete Organization...")
+	tflog.Info(ctx, out.String())
 
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to marshal payload", fmt.Sprintf("Unable to marshal payload: %s", err))
@@ -326,16 +351,19 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	reqOrg, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("%s/api/v1/organization/%s", r.endpoint, data.ID.ValueString()), strings.NewReader(out.String()))
 	reqOrg.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
+	reqOrg.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating organization resource request", fmt.Sprintf("Error creating organization resource request: %s", err))
 		return
 	}
 
-	_, err = r.client.Do(reqOrg)
+	organizationResponse, err := r.client.Do(reqOrg)
 	if err != nil {
 		resp.Diagnostics.AddError("Error executing organization resource request", fmt.Sprintf("Error executing organization resource request: %s", err))
 		return
 	}
+
+	tflog.Info(ctx, "Delete Organization response code: "+strconv.Itoa(organizationResponse.StatusCode))
 }
 
 func (r *OrganizationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
