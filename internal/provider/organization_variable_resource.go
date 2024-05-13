@@ -172,7 +172,7 @@ func (r *OrganizationVariableResource) Create(ctx context.Context, req resource.
 	organizationVariable := &client.OrganizationVariableEntity{}
 
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), organizationVariable)
-
+	tflog.Info(ctx, string(bodyResponse))
 	if err != nil {
 		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response: %s", err))
 		return
@@ -180,8 +180,16 @@ func (r *OrganizationVariableResource) Create(ctx context.Context, req resource.
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
+	b := *organizationVariable.Sensitive
+	if b == true {
+		tflog.Info(ctx, "Variable value is not included in response, setting values the same as the plan for sensitive=true...")
+		plan.Value = types.StringValue(plan.Value.ValueString())
+	} else {
+		tflog.Info(ctx, "Variable value is included in response...")
+		plan.Value = types.StringValue(organizationVariable.Value)
+	}
+
 	plan.Key = types.StringValue(organizationVariable.Key)
-	plan.Value = types.StringValue(organizationVariable.Value)
 	plan.Description = types.StringValue(organizationVariable.Description)
 	plan.Category = types.StringValue(organizationVariable.Category)
 	plan.Sensitive = types.BoolValue(*organizationVariable.Sensitive)
@@ -231,8 +239,16 @@ func (r *OrganizationVariableResource) Read(ctx context.Context, req resource.Re
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
+	b := *organizationVariable.Sensitive
+	if b == true {
+		tflog.Info(ctx, "Variable value is not included in response, setting values the same as the current state value")
+		state.Value = types.StringValue(state.Value.ValueString())
+	} else {
+		tflog.Info(ctx, "Variable value is included in response...")
+		state.Value = types.StringValue(organizationVariable.Value)
+	}
+
 	state.Key = types.StringValue(organizationVariable.Key)
-	state.Value = types.StringValue(organizationVariable.Value)
 	state.Description = types.StringValue(organizationVariable.Description)
 	state.Category = types.StringValue(organizationVariable.Category)
 	state.Sensitive = types.BoolValue(*organizationVariable.Sensitive)
@@ -330,7 +346,15 @@ func (r *OrganizationVariableResource) Update(ctx context.Context, req resource.
 
 	plan.ID = types.StringValue(state.ID.ValueString())
 	plan.Key = types.StringValue(organizationVariable.Key)
-	plan.Value = types.StringValue(organizationVariable.Value)
+	b := *organizationVariable.Sensitive
+	if b == true {
+		tflog.Info(ctx, "Variable value is not included in response, setting values the same as the plan for sensitive=true...")
+		plan.Value = types.StringValue(plan.Value.ValueString())
+	} else {
+		tflog.Info(ctx, "Variable value is included in response...")
+		plan.Value = types.StringValue(organizationVariable.Value)
+	}
+
 	plan.Description = types.StringValue(organizationVariable.Description)
 	plan.Category = types.StringValue(organizationVariable.Category)
 	plan.Sensitive = types.BoolValue(*organizationVariable.Sensitive)
