@@ -180,8 +180,7 @@ func (r *OrganizationVariableResource) Create(ctx context.Context, req resource.
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
-	b := *organizationVariable.Sensitive
-	if b == true {
+	if *organizationVariable.Sensitive {
 		tflog.Info(ctx, "Variable value is not included in response, setting values the same as the plan for sensitive=true...")
 		plan.Value = types.StringValue(plan.Value.ValueString())
 	} else {
@@ -239,8 +238,7 @@ func (r *OrganizationVariableResource) Read(ctx context.Context, req resource.Re
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
-	b := *organizationVariable.Sensitive
-	if b == true {
+	if *organizationVariable.Sensitive {
 		tflog.Info(ctx, "Variable value is not included in response, setting values the same as the current state value")
 		state.Value = types.StringValue(state.Value.ValueString())
 	} else {
@@ -346,8 +344,8 @@ func (r *OrganizationVariableResource) Update(ctx context.Context, req resource.
 
 	plan.ID = types.StringValue(state.ID.ValueString())
 	plan.Key = types.StringValue(organizationVariable.Key)
-	b := *organizationVariable.Sensitive
-	if b == true {
+
+	if *organizationVariable.Sensitive {
 		tflog.Info(ctx, "Variable value is not included in response, setting values the same as the plan for sensitive=true...")
 		plan.Value = types.StringValue(plan.Value.ValueString())
 	} else {

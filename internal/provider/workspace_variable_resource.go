@@ -184,8 +184,7 @@ func (r *WorkspaceVariableResource) Create(ctx context.Context, req resource.Cre
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
-	b := workspaceVariable.Sensitive
-	if b == true {
+	if workspaceVariable.Sensitive {
 		tflog.Info(ctx, "Variable value is not included in response, setting values the same as the plan for sensitive=true...")
 		plan.Value = types.StringValue(plan.Value.ValueString())
 	} else {
@@ -243,8 +242,7 @@ func (r *WorkspaceVariableResource) Read(ctx context.Context, req resource.ReadR
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
-	b := workspaceVariable.Sensitive
-	if b == true {
+	if workspaceVariable.Sensitive {
 		tflog.Info(ctx, "Variable value is not included in response, setting values the same as the current state value")
 		state.Value = types.StringValue(state.Value.ValueString())
 	} else {
@@ -347,8 +345,7 @@ func (r *WorkspaceVariableResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	b := workspaceVariable.Sensitive
-	if b == true {
+	if workspaceVariable.Sensitive {
 		tflog.Info(ctx, "Variable value is not included in response, setting values the same as the plan for sensitive=true...")
 		plan.Value = types.StringValue(plan.Value.ValueString())
 	} else {
