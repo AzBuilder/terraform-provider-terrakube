@@ -387,13 +387,13 @@ func (r *WorkspaceCliResource) Delete(ctx context.Context, req resource.DeleteRe
 	workspaceCliRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	workspaceCliRequest.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating vcs resource request", fmt.Sprintf("Error creating vcs resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating cli resource request", fmt.Sprintf("Error creating cli resource request: %s", err))
 		return
 	}
 
 	workspaceCliResponse, err := r.client.Do(workspaceCliRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing vcs resource request", fmt.Sprintf("Error executing vcs resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing cli resource request", fmt.Sprintf("Error executing cli resource request: %s", err))
 		return
 	}
 
