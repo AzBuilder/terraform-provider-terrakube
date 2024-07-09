@@ -22,34 +22,36 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &WorkspaceCliResource{}
-var _ resource.ResourceWithImportState = &WorkspaceCliResource{}
+var _ resource.Resource = &WorkspaceVcsResource{}
+var _ resource.ResourceWithImportState = &WorkspaceVcsResource{}
 
-type WorkspaceCliResource struct {
+type WorkspaceVcsResource struct {
 	client   *http.Client
 	endpoint string
 	token    string
 }
 
-type WorkspaceCliResourceModel struct {
+type WorkspaceVcsResourceModel struct {
 	ID             types.String `tfsdk:"id"`
 	Name           types.String `tfsdk:"name"`
 	OrganizationId types.String `tfsdk:"organization_id"`
 	Description    types.String `tfsdk:"description"`
 	IaCType        types.String `tfsdk:"iac_type"`
 	IaCVersion     types.String `tfsdk:"iac_version"`
+	Repository     types.String `tfsdk:"repository"`
+	Branch         types.String `tfsdk:"branch"`
 	ExecutionMode  types.String `tfsdk:"execution_mode"`
 }
 
-func NewWorkspaceCliResource() resource.Resource {
-	return &WorkspaceCliResource{}
+func NewWorkspaceVcsResource() resource.Resource {
+	return &WorkspaceVcsResource{}
 }
 
-func (r *WorkspaceCliResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_workspace_cli"
+func (r *WorkspaceVcsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_workspace_vcs"
 }
 
-func (r *WorkspaceCliResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -65,29 +67,37 @@ func (r *WorkspaceCliResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
-				Description: "Workspace CLI name",
+				Description: "Workspace VCS name",
 			},
 			"description": schema.StringAttribute{
 				Required:    true,
-				Description: "Workspace CLI description",
+				Description: "Workspace VCS description",
 			},
 			"execution_mode": schema.StringAttribute{
 				Required:    true,
-				Description: "Workspace CLI execution mode (remote or local)",
+				Description: "Workspace VCS execution mode (remote or local)",
 			},
 			"iac_type": schema.StringAttribute{
 				Required:    true,
-				Description: "Workspace CLI IaC type (Supported values terraform or tofu)",
+				Description: "Workspace VCS IaC type (Supported values terraform or tofu)",
 			},
 			"iac_version": schema.StringAttribute{
 				Required:    true,
-				Description: "Workspace CLI IaC type",
+				Description: "Workspace VCS VCS type",
+			},
+			"repository": schema.StringAttribute{
+				Required:    true,
+				Description: "Workspace VCS repository",
+			},
+			"branch": schema.StringAttribute{
+				Required:    true,
+				Description: "Workspace VCS branch",
 			},
 		},
 	}
 }
 
-func (r *WorkspaceCliResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *WorkspaceVcsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -117,11 +127,11 @@ func (r *WorkspaceCliResource) Configure(ctx context.Context, req resource.Confi
 	r.endpoint = providerData.Endpoint
 	r.token = providerData.Token
 
-	tflog.Debug(ctx, "Configuring Workspace CLI resource", map[string]any{"success": true})
+	tflog.Debug(ctx, "Configuring Workspace VCS resource", map[string]any{"success": true})
 }
 
-func (r *WorkspaceCliResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan WorkspaceCliResourceModel
+func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan WorkspaceVcsResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
@@ -132,8 +142,8 @@ func (r *WorkspaceCliResource) Create(ctx context.Context, req resource.CreateRe
 	bodyRequest := &client.WorkspaceEntity{
 		Name:          plan.Name.ValueString(),
 		Description:   plan.Description.ValueString(),
-		Source:        "empty",
-		Branch:        "remote-content",
+		Source:        plan.Repository.ValueString(),
+		Branch:        plan.Branch.ValueString(),
 		IaCType:       plan.IaCType.ValueString(),
 		IaCVersion:    plan.IaCVersion.ValueString(),
 		ExecutionMode: plan.ExecutionMode.ValueString(),
@@ -147,28 +157,28 @@ func (r *WorkspaceCliResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	workspaceCliRequest, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/v1/organization/%s/workspace", r.endpoint, plan.OrganizationId.ValueString()), strings.NewReader(out.String()))
-	workspaceCliRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
-	workspaceCliRequest.Header.Add("Content-Type", "application/vnd.api+json")
+	workspaceVcsRequest, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/v1/organization/%s/workspace", r.endpoint, plan.OrganizationId.ValueString()), strings.NewReader(out.String()))
+	workspaceVcsRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
+	workspaceVcsRequest.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating workspace cli resource request", fmt.Sprintf("Error creating workspace cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating workspace vcs resource request", fmt.Sprintf("Error creating workspace vcs resource request: %s", err))
 		return
 	}
 
-	workspaceCliResponse, err := r.client.Do(workspaceCliRequest)
+	workspaceVcsResponse, err := r.client.Do(workspaceVcsRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing workspace cli resource request", fmt.Sprintf("Error executing workspace cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace vcs resource request: %s", err))
 		return
 	}
 
-	bodyResponse, err := io.ReadAll(workspaceCliResponse.Body)
+	bodyResponse, err := io.ReadAll(workspaceVcsResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading workspace cli resource response")
+		tflog.Error(ctx, "Error reading workspace vcs resource response")
 	}
-	newWorkspaceCli := &client.WorkspaceEntity{}
+	newWorkspaceVcs := &client.WorkspaceEntity{}
 
 	fmt.Println(string(bodyResponse))
-	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), newWorkspaceCli)
+	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), newWorkspaceVcs)
 
 	if err != nil {
 		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response: %s", err))
@@ -177,20 +187,22 @@ func (r *WorkspaceCliResource) Create(ctx context.Context, req resource.CreateRe
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
-	plan.ID = types.StringValue(newWorkspaceCli.ID)
-	plan.Name = types.StringValue(newWorkspaceCli.Name)
-	plan.Description = types.StringValue(newWorkspaceCli.Description)
-	plan.IaCType = types.StringValue(newWorkspaceCli.IaCType)
-	plan.IaCVersion = types.StringValue(newWorkspaceCli.IaCVersion)
-	plan.ExecutionMode = types.StringValue(newWorkspaceCli.ExecutionMode)
+	plan.ID = types.StringValue(newWorkspaceVcs.ID)
+	plan.Name = types.StringValue(newWorkspaceVcs.Name)
+	plan.Description = types.StringValue(newWorkspaceVcs.Description)
+	plan.Repository = types.StringValue(newWorkspaceVcs.Source)
+	plan.Branch = types.StringValue(newWorkspaceVcs.Branch)
+	plan.IaCType = types.StringValue(newWorkspaceVcs.IaCType)
+	plan.IaCVersion = types.StringValue(newWorkspaceVcs.IaCVersion)
+	plan.ExecutionMode = types.StringValue(newWorkspaceVcs.ExecutionMode)
 
-	tflog.Info(ctx, "Workspace Cli Resource Created", map[string]any{"success": true})
+	tflog.Info(ctx, "Workspace VCS Resource Created", map[string]any{"success": true})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *WorkspaceCliResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state WorkspaceCliResourceModel
+func (r *WorkspaceVcsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state WorkspaceVcsResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -201,19 +213,19 @@ func (r *WorkspaceCliResource) Read(ctx context.Context, req resource.ReadReques
 	workspaceRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	workspaceRequest.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating workspace cli resource request", fmt.Sprintf("Error creating workspace cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating workspace vcs resource request", fmt.Sprintf("Error creating workspace cli resource request: %s", err))
 		return
 	}
 
 	workspaceResponse, err := r.client.Do(workspaceRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing workspace cli resource request", fmt.Sprintf("Error executing workspace cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace cli resource request: %s", err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(workspaceResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading workspace cli resource response")
+		tflog.Error(ctx, "Error reading workspace vcs resource response")
 	}
 	workspace := &client.WorkspaceEntity{}
 
@@ -230,6 +242,8 @@ func (r *WorkspaceCliResource) Read(ctx context.Context, req resource.ReadReques
 	state.Name = types.StringValue(workspace.Name)
 	state.Description = types.StringValue(workspace.Description)
 	state.ExecutionMode = types.StringValue(workspace.ExecutionMode)
+	state.Repository = types.StringValue(workspace.Source)
+	state.Branch = types.StringValue(workspace.Branch)
 	state.IaCType = types.StringValue(workspace.IaCType)
 	state.IaCVersion = types.StringValue(workspace.IaCVersion)
 	state.ID = types.StringValue(workspace.ID)
@@ -241,13 +255,13 @@ func (r *WorkspaceCliResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	tflog.Info(ctx, "Workspace Cli Resource reading", map[string]any{"success": true})
+	tflog.Info(ctx, "Workspace vcs Resource reading", map[string]any{"success": true})
 }
 
-func (r *WorkspaceCliResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan WorkspaceCliResourceModel
-	var state WorkspaceCliResourceModel
+	var plan WorkspaceVcsResourceModel
+	var state WorkspaceVcsResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -259,8 +273,8 @@ func (r *WorkspaceCliResource) Update(ctx context.Context, req resource.UpdateRe
 		IaCType:       plan.IaCType.ValueString(),
 		ExecutionMode: plan.ExecutionMode.ValueString(),
 		Description:   plan.Description.ValueString(),
-		Source:        "empty",
-		Branch:        "remote-content",
+		Source:        plan.Repository.ValueString(),
+		Branch:        plan.Repository.ValueString(),
 		Name:          plan.Name.ValueString(),
 		ID:            state.ID.ValueString(),
 	}
@@ -277,19 +291,19 @@ func (r *WorkspaceCliResource) Update(ctx context.Context, req resource.UpdateRe
 	organizationRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	organizationRequest.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating workspace cli resource request", fmt.Sprintf("Error creating workspace cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating workspace vcs resource request", fmt.Sprintf("Error creating workspace vcs resource request: %s", err))
 		return
 	}
 
 	organizationResponse, err := r.client.Do(organizationRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing workspace cli resource request", fmt.Sprintf("Error executing workspace cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace vcs resource request: %s", err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(organizationResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading workspace cli resource response")
+		tflog.Error(ctx, "Error reading workspace vcs resource response")
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"success": string(bodyResponse)})
@@ -298,19 +312,19 @@ func (r *WorkspaceCliResource) Update(ctx context.Context, req resource.UpdateRe
 	organizationRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	organizationRequest.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating workspace cli resource request", fmt.Sprintf("Error creating workspace cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating workspace vcs resource request", fmt.Sprintf("Error creating workspace vcs resource request: %s", err))
 		return
 	}
 
 	organizationResponse, err = r.client.Do(organizationRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing workspace cli resource request", fmt.Sprintf("Error executing workspace cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace vcs resource request: %s", err))
 		return
 	}
 
 	bodyResponse, err = io.ReadAll(organizationResponse.Body)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading workspace cli resource response body", fmt.Sprintf("Error reading workspace cli resource response body: %s", err))
+		resp.Diagnostics.AddError("Error reading workspace vcs resource response body", fmt.Sprintf("Error reading workspace vcs resource response body: %s", err))
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
@@ -326,6 +340,8 @@ func (r *WorkspaceCliResource) Update(ctx context.Context, req resource.UpdateRe
 	plan.ID = types.StringValue(state.ID.ValueString())
 	plan.Name = types.StringValue(workspace.Name)
 	plan.Description = types.StringValue(workspace.Description)
+	plan.Repository = types.StringValue(workspace.Source)
+	plan.Branch = types.StringValue(workspace.Branch)
 	plan.IaCType = types.StringValue(workspace.IaCType)
 	plan.IaCVersion = types.StringValue(workspace.IaCVersion)
 	plan.ExecutionMode = types.StringValue(workspace.ExecutionMode)
@@ -333,8 +349,8 @@ func (r *WorkspaceCliResource) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *WorkspaceCliResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data WorkspaceCliResourceModel
+func (r *WorkspaceVcsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data WorkspaceVcsResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -364,8 +380,8 @@ func (r *WorkspaceCliResource) Delete(ctx context.Context, req resource.DeleteRe
 		ID:            data.ID.ValueString(),
 		Name:          fmt.Sprintf("%s_DEL_%s", data.Name.ValueString(), string(b)), // FORCE A NAME CHANGE WITH THE SAME LOGIC THAT IN THE UI
 		Description:   data.Description.ValueString(),
-		Source:        "empty",
-		Branch:        "remote-content",
+		Source:        data.Repository.ValueString(),
+		Branch:        data.Branch.ValueString(),
 		IaCType:       data.IaCType.ValueString(),
 		IaCVersion:    data.IaCVersion.ValueString(),
 		ExecutionMode: data.ExecutionMode.ValueString(),
@@ -383,24 +399,24 @@ func (r *WorkspaceCliResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
-	workspaceCliRequest, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("%s/api/v1/organization/%s/workspace/%s", r.endpoint, data.OrganizationId.ValueString(), data.ID.ValueString()), strings.NewReader(out.String()))
-	workspaceCliRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
-	workspaceCliRequest.Header.Add("Content-Type", "application/vnd.api+json")
+	workspaceVcsRequest, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("%s/api/v1/organization/%s/workspace/%s", r.endpoint, data.OrganizationId.ValueString(), data.ID.ValueString()), strings.NewReader(out.String()))
+	workspaceVcsRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
+	workspaceVcsRequest.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating cli resource request", fmt.Sprintf("Error creating cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating vcs resource request", fmt.Sprintf("Error creating vcs resource request: %s", err))
 		return
 	}
 
-	workspaceCliResponse, err := r.client.Do(workspaceCliRequest)
+	workspaceVcsResponse, err := r.client.Do(workspaceVcsRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing cli resource request", fmt.Sprintf("Error executing cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing vcs resource request", fmt.Sprintf("Error executing vcs resource request: %s", err))
 		return
 	}
 
-	tflog.Info(ctx, "Delete response code: "+strconv.Itoa(workspaceCliResponse.StatusCode))
+	tflog.Info(ctx, "Delete response code: "+strconv.Itoa(workspaceVcsResponse.StatusCode))
 
 }
 
-func (r *WorkspaceCliResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *WorkspaceVcsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
