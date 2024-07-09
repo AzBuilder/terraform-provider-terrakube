@@ -20,6 +20,7 @@ description: |-
 - `branch` (String) Workspace VCS branch
 - `description` (String) Workspace VCS description
 - `execution_mode` (String) Workspace VCS execution mode (remote or local)
+- `folder` (String) Workspace VCS folder
 - `iac_type` (String) Workspace VCS IaC type (Supported values terraform or tofu)
 - `iac_version` (String) Workspace VCS VCS type
 - `name` (String) Workspace VCS name
