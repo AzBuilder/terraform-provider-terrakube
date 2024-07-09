@@ -5,6 +5,7 @@ resource "terrakube_workspace_cli" "sample1" {
   execution_mode  = "remote"
   repository      = "https://github.com/AzBuilder/terrakube-docker-compose.git"
   branch          = "main"
+  folder          = "/"
   iac_type        = "terraform"
   iac_version     = "1.5.7"
 }

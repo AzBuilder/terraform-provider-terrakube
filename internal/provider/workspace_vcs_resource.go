@@ -40,6 +40,7 @@ type WorkspaceVcsResourceModel struct {
 	IaCVersion     types.String `tfsdk:"iac_version"`
 	Repository     types.String `tfsdk:"repository"`
 	Branch         types.String `tfsdk:"branch"`
+	Folder         types.String `tfsdk:"folder"`
 	ExecutionMode  types.String `tfsdk:"execution_mode"`
 }
 
@@ -92,6 +93,10 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 			"branch": schema.StringAttribute{
 				Required:    true,
 				Description: "Workspace VCS branch",
+			},
+			"folder": schema.StringAttribute{
+				Required:    true,
+				Description: "Workspace VCS folder",
 			},
 		},
 	}
@@ -146,6 +151,7 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 		Branch:        plan.Branch.ValueString(),
 		IaCType:       plan.IaCType.ValueString(),
 		IaCVersion:    plan.IaCVersion.ValueString(),
+		Folder:        plan.Folder.ValueString(),
 		ExecutionMode: plan.ExecutionMode.ValueString(),
 	}
 
@@ -194,6 +200,7 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 	plan.Branch = types.StringValue(newWorkspaceVcs.Branch)
 	plan.IaCType = types.StringValue(newWorkspaceVcs.IaCType)
 	plan.IaCVersion = types.StringValue(newWorkspaceVcs.IaCVersion)
+	plan.Folder = types.StringValue(newWorkspaceVcs.Folder)
 	plan.ExecutionMode = types.StringValue(newWorkspaceVcs.ExecutionMode)
 
 	tflog.Info(ctx, "Workspace VCS Resource Created", map[string]any{"success": true})
@@ -245,6 +252,7 @@ func (r *WorkspaceVcsResource) Read(ctx context.Context, req resource.ReadReques
 	state.Repository = types.StringValue(workspace.Source)
 	state.Branch = types.StringValue(workspace.Branch)
 	state.IaCType = types.StringValue(workspace.IaCType)
+	state.Folder = types.StringValue(workspace.Folder)
 	state.IaCVersion = types.StringValue(workspace.IaCVersion)
 	state.ID = types.StringValue(workspace.ID)
 
@@ -275,6 +283,7 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 		Description:   plan.Description.ValueString(),
 		Source:        plan.Repository.ValueString(),
 		Branch:        plan.Repository.ValueString(),
+		Folder:        plan.Folder.ValueString(),
 		Name:          plan.Name.ValueString(),
 		ID:            state.ID.ValueString(),
 	}
@@ -345,6 +354,7 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 	plan.IaCType = types.StringValue(workspace.IaCType)
 	plan.IaCVersion = types.StringValue(workspace.IaCVersion)
 	plan.ExecutionMode = types.StringValue(workspace.ExecutionMode)
+	plan.Folder = types.StringValue(workspace.Folder)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
