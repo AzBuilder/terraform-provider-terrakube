@@ -6,6 +6,12 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+	"terraform-provider-terrakube/internal/client"
+
 	"github.com/google/jsonapi"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -14,11 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
-	"terraform-provider-terrakube/internal/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -282,7 +283,7 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 		ExecutionMode: plan.ExecutionMode.ValueString(),
 		Description:   plan.Description.ValueString(),
 		Source:        plan.Repository.ValueString(),
-		Branch:        plan.Repository.ValueString(),
+		Branch:        plan.Branch.ValueString(),
 		Folder:        plan.Folder.ValueString(),
 		Name:          plan.Name.ValueString(),
 		ID:            state.ID.ValueString(),

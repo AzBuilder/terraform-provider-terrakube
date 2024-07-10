@@ -12,6 +12,11 @@ type OrganizationEntity struct {
 	Disabled      bool   `jsonapi:"attr,disabled"`
 }
 
+type OrganizationTagEntity struct {
+	ID   string `jsonapi:"primary,tag"`
+	Name string `jsonapi:"attr,name"`
+}
+
 type TeamEntity struct {
 	ID              string `jsonapi:"primary,team"`
 	Name            string `jsonapi:"attr,name"`
@@ -33,6 +38,11 @@ type WorkspaceEntity struct {
 	IaCVersion    string `jsonapi:"attr,terraformVersion"`
 	ExecutionMode string `jsonapi:"attr,executionMode"`
 	Deleted       bool   `jsonapi:"attr,deleted"`
+}
+
+type WorkspaceTagEntity struct {
+	ID    string `jsonapi:"primary,workspacetag"`
+	TagID string `jsonapi:"attr,tagId"`
 }
 
 type WorkspaceVariableEntity struct {
