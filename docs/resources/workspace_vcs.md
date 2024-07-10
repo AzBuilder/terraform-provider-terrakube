@@ -27,6 +27,10 @@ description: |-
 - `organization_id` (String) Terrakube organization id
 - `repository` (String) Workspace VCS repository
 
+### Optional
+
+- `vcs_id` (String) VCS connection ID for private workspaces
+
 ### Read-Only
 
 - `id` (String) Workspace CLI Id
