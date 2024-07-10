@@ -42,6 +42,7 @@ type WorkspaceVcsResourceModel struct {
 	Branch         types.String `tfsdk:"branch"`
 	Folder         types.String `tfsdk:"folder"`
 	ExecutionMode  types.String `tfsdk:"execution_mode"`
+	VcsId          types.String `tfsdk:"vcs_id"`
 }
 
 func NewWorkspaceVcsResource() resource.Resource {
@@ -97,6 +98,10 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 			"folder": schema.StringAttribute{
 				Required:    true,
 				Description: "Workspace VCS folder",
+			},
+			"vcs_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "VCS connection ID for private workspaces",
 			},
 		},
 	}
@@ -155,6 +160,11 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 		ExecutionMode: plan.ExecutionMode.ValueString(),
 	}
 
+	if !plan.VcsId.IsNull() {
+		tflog.Info(ctx, fmt.Sprintf("Workspace using Vcs connection id: %s", plan.VcsId.ValueString()))
+		bodyRequest.Vcs = &client.VcsEntity{ID: plan.VcsId.ValueString()}
+	}
+
 	var out = new(bytes.Buffer)
 	err := jsonapi.MarshalPayload(out, bodyRequest)
 
@@ -202,6 +212,10 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 	plan.IaCVersion = types.StringValue(newWorkspaceVcs.IaCVersion)
 	plan.Folder = types.StringValue(newWorkspaceVcs.Folder)
 	plan.ExecutionMode = types.StringValue(newWorkspaceVcs.ExecutionMode)
+
+	if newWorkspaceVcs.Vcs != nil {
+		plan.VcsId = types.StringValue(newWorkspaceVcs.Vcs.ID)
+	}
 
 	tflog.Info(ctx, "Workspace VCS Resource Created", map[string]any{"success": true})
 
@@ -355,6 +369,9 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 	plan.IaCVersion = types.StringValue(workspace.IaCVersion)
 	plan.ExecutionMode = types.StringValue(workspace.ExecutionMode)
 	plan.Folder = types.StringValue(workspace.Folder)
+	if workspace.Vcs != nil {
+		plan.VcsId = types.StringValue(workspace.Vcs.ID)
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

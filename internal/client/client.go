@@ -23,16 +23,17 @@ type TeamEntity struct {
 }
 
 type WorkspaceEntity struct {
-	ID            string `jsonapi:"primary,workspace"`
-	Name          string `jsonapi:"attr,name"`
-	Description   string `jsonapi:"attr,description"`
-	Source        string `jsonapi:"attr,source"`
-	Branch        string `jsonapi:"attr,branch"`
-	Folder        string `jsonapi:"attr,folder"`
-	IaCType       string `jsonapi:"attr,iacType"`
-	IaCVersion    string `jsonapi:"attr,terraformVersion"`
-	ExecutionMode string `jsonapi:"attr,executionMode"`
-	Deleted       bool   `jsonapi:"attr,deleted"`
+	ID            string     `jsonapi:"primary,workspace"`
+	Name          string     `jsonapi:"attr,name"`
+	Description   string     `jsonapi:"attr,description"`
+	Source        string     `jsonapi:"attr,source"`
+	Branch        string     `jsonapi:"attr,branch"`
+	Folder        string     `jsonapi:"attr,folder"`
+	IaCType       string     `jsonapi:"attr,iacType"`
+	IaCVersion    string     `jsonapi:"attr,terraformVersion"`
+	ExecutionMode string     `jsonapi:"attr,executionMode"`
+	Deleted       bool       `jsonapi:"attr,deleted"`
+	Vcs           *VcsEntity `jsonapi:"relation,vcs,omitempty"`
 }
 
 type WorkspaceVariableEntity struct {
