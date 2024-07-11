@@ -6,6 +6,7 @@ resource "terrakube_workspace_cli" "sample1" {
   repository      = "https://github.com/AzBuilder/terrakube-docker-compose.git"
   branch          = "main"
   folder          = "/"
+  template_id     = terrakube_organization_template.example.id
   iac_type        = "terraform"
   iac_version     = "1.5.7"
 }

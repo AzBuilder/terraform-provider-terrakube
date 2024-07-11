@@ -38,6 +38,7 @@ type WorkspaceVcsResourceModel struct {
 	OrganizationId types.String `tfsdk:"organization_id"`
 	Description    types.String `tfsdk:"description"`
 	IaCType        types.String `tfsdk:"iac_type"`
+	TemplateId     types.String `tfsdk:"template_id"`
 	IaCVersion     types.String `tfsdk:"iac_version"`
 	Repository     types.String `tfsdk:"repository"`
 	Branch         types.String `tfsdk:"branch"`
@@ -91,6 +92,10 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 			"repository": schema.StringAttribute{
 				Required:    true,
 				Description: "Workspace VCS repository",
+			},
+			"template_id": schema.StringAttribute{
+				Required:    true,
+				Description: "Default template ID for the workspace",
 			},
 			"branch": schema.StringAttribute{
 				Required:    true,
@@ -158,6 +163,7 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 		IaCType:       plan.IaCType.ValueString(),
 		IaCVersion:    plan.IaCVersion.ValueString(),
 		Folder:        plan.Folder.ValueString(),
+		TemplateId:    plan.TemplateId.ValueString(),
 		ExecutionMode: plan.ExecutionMode.ValueString(),
 	}
 
@@ -212,6 +218,7 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 	plan.IaCType = types.StringValue(newWorkspaceVcs.IaCType)
 	plan.IaCVersion = types.StringValue(newWorkspaceVcs.IaCVersion)
 	plan.Folder = types.StringValue(newWorkspaceVcs.Folder)
+	plan.TemplateId = types.StringValue(newWorkspaceVcs.TemplateId)
 	plan.ExecutionMode = types.StringValue(newWorkspaceVcs.ExecutionMode)
 
 	if newWorkspaceVcs.Vcs != nil {
@@ -268,6 +275,7 @@ func (r *WorkspaceVcsResource) Read(ctx context.Context, req resource.ReadReques
 	state.Branch = types.StringValue(workspace.Branch)
 	state.IaCType = types.StringValue(workspace.IaCType)
 	state.Folder = types.StringValue(workspace.Folder)
+	state.TemplateId = types.StringValue(workspace.TemplateId)
 	state.IaCVersion = types.StringValue(workspace.IaCVersion)
 	state.ID = types.StringValue(workspace.ID)
 
@@ -299,6 +307,7 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 		Source:        plan.Repository.ValueString(),
 		Branch:        plan.Branch.ValueString(),
 		Folder:        plan.Folder.ValueString(),
+		TemplateId:    plan.TemplateId.ValueString(),
 		Name:          plan.Name.ValueString(),
 		ID:            state.ID.ValueString(),
 	}
@@ -370,6 +379,7 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 	plan.IaCVersion = types.StringValue(workspace.IaCVersion)
 	plan.ExecutionMode = types.StringValue(workspace.ExecutionMode)
 	plan.Folder = types.StringValue(workspace.Folder)
+	plan.TemplateId = types.StringValue(workspace.TemplateId)
 	if workspace.Vcs != nil {
 		plan.VcsId = types.StringValue(workspace.Vcs.ID)
 	}
@@ -411,6 +421,7 @@ func (r *WorkspaceVcsResource) Delete(ctx context.Context, req resource.DeleteRe
 		Source:        data.Repository.ValueString(),
 		Branch:        data.Branch.ValueString(),
 		IaCType:       data.IaCType.ValueString(),
+		TemplateId:    data.TemplateId.ValueString(),
 		IaCVersion:    data.IaCVersion.ValueString(),
 		ExecutionMode: data.ExecutionMode.ValueString(),
 		Deleted:       true,

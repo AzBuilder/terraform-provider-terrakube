@@ -26,6 +26,7 @@ description: |-
 - `name` (String) Workspace VCS name
 - `organization_id` (String) Terrakube organization id
 - `repository` (String) Workspace VCS repository
+- `template_id` (String) Default template ID for the workspace
 
 ### Optional
 

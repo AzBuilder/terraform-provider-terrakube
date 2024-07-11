@@ -12,6 +12,14 @@ type OrganizationEntity struct {
 	Disabled      bool   `jsonapi:"attr,disabled"`
 }
 
+type OrganizationTemplateEntity struct {
+	ID          string `jsonapi:"primary,template"`
+	Name        string `jsonapi:"attr,name"`
+	Description string `jsonapi:"attr,description"`
+	Version     string `jsonapi:"attr,version"`
+	Content     string `jsonapi:"attr,tcl"`
+}
+
 type OrganizationTagEntity struct {
 	ID   string `jsonapi:"primary,tag"`
 	Name string `jsonapi:"attr,name"`
@@ -34,6 +42,7 @@ type WorkspaceEntity struct {
 	Source        string     `jsonapi:"attr,source"`
 	Branch        string     `jsonapi:"attr,branch"`
 	Folder        string     `jsonapi:"attr,folder"`
+	TemplateId    string     `jsonapi:"attr,defaultTemplate"`
 	IaCType       string     `jsonapi:"attr,iacType"`
 	IaCVersion    string     `jsonapi:"attr,terraformVersion"`
 	ExecutionMode string     `jsonapi:"attr,executionMode"`
