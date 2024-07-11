@@ -20,6 +20,11 @@ type OrganizationTemplateEntity struct {
 	Content     string `jsonapi:"attr,tcl"`
 }
 
+type OrganizationTagEntity struct {
+	ID   string `jsonapi:"primary,tag"`
+	Name string `jsonapi:"attr,name"`
+}
+
 type TeamEntity struct {
 	ID              string `jsonapi:"primary,team"`
 	Name            string `jsonapi:"attr,name"`
@@ -43,6 +48,11 @@ type WorkspaceEntity struct {
 	ExecutionMode string     `jsonapi:"attr,executionMode"`
 	Deleted       bool       `jsonapi:"attr,deleted"`
 	Vcs           *VcsEntity `jsonapi:"relation,vcs,omitempty"`
+}
+
+type WorkspaceTagEntity struct {
+	ID    string `jsonapi:"primary,workspacetag"`
+	TagID string `jsonapi:"attr,tagId"`
 }
 
 type WorkspaceVariableEntity struct {
