@@ -4,16 +4,18 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"reflect"
+	"strings"
+	"terraform-provider-terrakube/internal/client"
+
 	"github.com/google/jsonapi"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"io"
-	"net/http"
-	"reflect"
-	"strings"
-	"terraform-provider-terrakube/internal/client"
 )
 
 var (
@@ -103,7 +105,8 @@ func (d *VcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	req.Config.Get(ctx, &state)
 
-	requestVcs, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/organization/%s/vcs?filter[vcs]=name==%s", d.endpoint, state.OrganizationId.ValueString(), state.Name.ValueString()), nil)
+	apiURL := fmt.Sprintf("%s/api/v1/organization/%s/vcs?filter[vcs]=name=='%s'", d.endpoint, state.OrganizationId.ValueString(), url.PathEscape(state.Name.ValueString()))
+	requestVcs, err := http.NewRequest(http.MethodGet, apiURL, nil)
 	requestVcs.Header.Add("Authorization", fmt.Sprintf("Bearer %s", d.token))
 	requestVcs.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
@@ -129,7 +132,7 @@ func (d *VcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	vcss, err = jsonapi.UnmarshalManyPayload(strings.NewReader(string(bodyResponse)), reflect.TypeOf(new(client.VcsEntity)))
 
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to un marshal payload", fmt.Sprintf("Unable to unmarshal payload: %s", err))
+		resp.Diagnostics.AddError("Unable to unmarshal payload", fmt.Sprintf("Unable to unmarshal payload, error: %s, response status %s, response body %s", err, responseVcs.Status, string(bodyResponse)))
 		return
 	}
 
