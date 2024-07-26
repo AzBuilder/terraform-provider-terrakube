@@ -175,6 +175,7 @@ func (p *TerrakubeProvider) Resources(ctx context.Context) []func() resource.Res
 		NewOrganizationTagResource,
 		NewOrganizationVariableResource,
 		NewTeamResource,
+		NewTeamTokenResource,
 		NewWorkspaceCliResource,
 		NewWorkspaceTagResource,
 		NewWorkspaceVariableResource,

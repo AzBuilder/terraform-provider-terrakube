@@ -35,6 +35,16 @@ type TeamEntity struct {
 	ManageTemplate  bool   `jsonapi:"attr,manageTemplate"`
 }
 
+type TeamTokenEntity struct {
+	ID          string `json:"id"`
+	Description string `json:"description"`
+	Days        int32  `json:"days"`
+	Hours       int32  `json:"hours"`
+	Minutes     int32  `json:"minutes"`
+	Group       string `json:"group"`
+	Value       string `json:"token"`
+}
+
 type WorkspaceEntity struct {
 	ID            string     `jsonapi:"primary,workspace"`
 	Name          string     `jsonapi:"attr,name"`
