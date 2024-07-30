@@ -3,6 +3,7 @@ module terraform-provider-terrakube
 go 1.19
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/jsonapi v1.0.0
 	github.com/hashicorp/terraform-plugin-docs v0.18.0
 	github.com/hashicorp/terraform-plugin-framework v1.10.0
