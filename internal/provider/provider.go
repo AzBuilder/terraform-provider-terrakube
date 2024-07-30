@@ -186,6 +186,7 @@ func (p *TerrakubeProvider) DataSources(ctx context.Context) []func() datasource
 	return []func() datasource.DataSource{
 		NewOrganizationDataSource,
 		NewOrganizationTemplateDataSource,
+		NewOrganizationTagDataSource,
 		NewVcsDataSource,
 		NewSshDataSource,
 	}
