@@ -86,9 +86,15 @@ type OrganizationVariableEntity struct {
 }
 
 type VcsEntity struct {
-	ID          string `jsonapi:"primary,vcs"`
-	Name        string `jsonapi:"attr,name"`
-	Description string `jsonapi:"attr,description"`
+	ID           string `jsonapi:"primary,vcs"`
+	Name         string `jsonapi:"attr,name"`
+	Description  string `jsonapi:"attr,description"`
+	VcsType      string `jsonapi:"attr,vcsType"`
+	ClientId     string `jsonapi:"attr,clientId"`
+	ClientSecret string `jsonapi:"attr,clientSecret"`
+	Endpoint     string `jsonapi:"attr,endpoint"`
+	ApiUrl       string `jsonapi:"attr,apiUrl"`
+	Status       string `jsonapi:"attr,status"`
 }
 
 type SshEntity struct {

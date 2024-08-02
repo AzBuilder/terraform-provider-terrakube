@@ -28,6 +28,10 @@ type VcsDataSourceModel struct {
 	OrganizationId types.String `tfsdk:"organization_id"`
 	Name           types.String `tfsdk:"name"`
 	Description    types.String `tfsdk:"description"`
+	ClientId       types.String `tfsdk:"client_id"`
+	Endpoint       types.String `tfsdk:"endpoint"`
+	ApiUrl         types.String `tfsdk:"api_url"`
+	Status         types.String `tfsdk:"status"`
 }
 
 type VcsDataSource struct {
@@ -140,6 +144,10 @@ func (d *VcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		data, _ := vcs.(*client.VcsEntity)
 		state.ID = types.StringValue(data.ID)
 		state.Description = types.StringValue(data.Description)
+		state.ClientId = types.StringValue(data.ClientId)
+		state.Endpoint = types.StringValue(data.Endpoint)
+		state.ApiUrl = types.StringValue(data.ApiUrl)
+		state.Status = types.StringValue(data.Status)
 	}
 
 	diags := resp.State.Set(ctx, &state)
