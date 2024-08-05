@@ -22,5 +22,9 @@ description: |-
 
 ### Read-Only
 
+- `api_url` (String) The api url of the Vcs provider
+- `client_id` (String) The client id of the Vcs provider
 - `description` (String) Vcs description information
+- `endpoint` (String) The endpoint of the Vcs provider
 - `id` (String) Vcs Id
+- `status` (String) The status of the Vcs provider

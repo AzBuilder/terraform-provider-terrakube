@@ -100,6 +100,22 @@ func (d *VcsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, re
 				Computed:    true,
 				Description: "Vcs description information",
 			},
+			"client_id": schema.StringAttribute{
+				Computed:    true,
+				Description: "The client id of the Vcs provider",
+			},
+			"endpoint": schema.StringAttribute{
+				Computed:    true,
+				Description: "The endpoint of the Vcs provider",
+			},
+			"api_url": schema.StringAttribute{
+				Computed:    true,
+				Description: "The api url of the Vcs provider",
+			},
+			"status": schema.StringAttribute{
+				Computed:    true,
+				Description: "The status of the Vcs provider",
+			},
 		},
 	}
 }
