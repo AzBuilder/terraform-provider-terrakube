@@ -1,0 +1,1 @@
+terraform import terrakube_workspace_vcs.example_workspace_vcs 00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000000

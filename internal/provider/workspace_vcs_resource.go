@@ -13,11 +13,14 @@ import (
 	"terraform-provider-terrakube/internal/client"
 
 	"github.com/google/jsonapi"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -74,16 +77,26 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 				Description: "Workspace VCS name",
 			},
 			"description": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Workspace VCS description",
 			},
 			"execution_mode": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("remote"),
 				Description: "Workspace VCS execution mode (remote or local)",
+				Validators: []validator.String{
+					stringvalidator.OneOf("remote", "local"),
+				},
 			},
 			"iac_type": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("terraform"),
 				Description: "Workspace VCS IaC type (Supported values terraform or tofu)",
+				Validators: []validator.String{
+					stringvalidator.OneOf("terraform", "tofu"),
+				},
 			},
 			"iac_version": schema.StringAttribute{
 				Required:    true,
@@ -98,11 +111,15 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 				Description: "Default template ID for the workspace",
 			},
 			"branch": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("main"),
 				Description: "Workspace VCS branch",
 			},
 			"folder": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("/"),
 				Description: "Workspace VCS folder",
 			},
 			"vcs_id": schema.StringAttribute{
@@ -190,13 +207,13 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 
 	workspaceVcsResponse, err := r.client.Do(workspaceVcsRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace vcs resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace vcs resource request, response status: %s, response body: %s, error: %s", workspaceVcsResponse.Status, workspaceVcsResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(workspaceVcsResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading workspace vcs resource response")
+		tflog.Error(ctx, fmt.Sprintf("Error reading workspace vcs resource response, response status: %s, response body: %s, error: %s", workspaceVcsResponse.Status, workspaceVcsResponse.Body, err))
 	}
 	newWorkspaceVcs := &client.WorkspaceEntity{}
 
@@ -204,7 +221,7 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), newWorkspaceVcs)
 
 	if err != nil {
-		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response: %s", err))
+		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response, response status: %s, response body: %s, error: %s", workspaceVcsResponse.Status, workspaceVcsResponse.Body, err))
 		return
 	}
 
@@ -248,13 +265,13 @@ func (r *WorkspaceVcsResource) Read(ctx context.Context, req resource.ReadReques
 
 	workspaceResponse, err := r.client.Do(workspaceRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace cli resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace cli resource request, response status: %s, response body: %s, error: %s", workspaceResponse.Status, workspaceResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(workspaceResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading workspace vcs resource response")
+		tflog.Error(ctx, fmt.Sprintf("Error reading workspace vcs resource response, response status: %s, response body: %s, error: %s", workspaceResponse.Status, workspaceResponse.Body, err))
 	}
 	workspace := &client.WorkspaceEntity{}
 
@@ -262,7 +279,7 @@ func (r *WorkspaceVcsResource) Read(ctx context.Context, req resource.ReadReques
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), workspace)
 
 	if err != nil {
-		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response: %s", err))
+		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response, response status: %s, response body: %s, error: %s", workspaceResponse.Status, workspaceResponse.Body, err))
 		return
 	}
 
@@ -330,13 +347,13 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 
 	organizationResponse, err := r.client.Do(organizationRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace vcs resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace vcs resource request, response status: %s, response body: %s, error: %s", organizationResponse.Status, organizationResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(organizationResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading workspace vcs resource response")
+		tflog.Error(ctx, fmt.Sprintf("Error reading workspace vcs resource response, response status: %s, response body: %s, error: %s", organizationResponse.Status, organizationResponse.Body, err))
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"success": string(bodyResponse)})
@@ -351,13 +368,13 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 
 	organizationResponse, err = r.client.Do(organizationRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace vcs resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing workspace vcs resource request", fmt.Sprintf("Error executing workspace vcs resource request, response status: %s, response body: %s, error: %s", organizationResponse.Status, organizationResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err = io.ReadAll(organizationResponse.Body)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading workspace vcs resource response body", fmt.Sprintf("Error reading workspace vcs resource response body: %s", err))
+		resp.Diagnostics.AddError("Error reading workspace vcs resource response body", fmt.Sprintf("Error reading workspace vcs resource response body, response status: %s, response body: %s, error: %s", organizationResponse.Status, organizationResponse.Body, err))
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
@@ -366,7 +383,7 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), workspace)
 
 	if err != nil {
-		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response: %s", err))
+		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response, response status: %s, response body: %s, error: %s", organizationResponse.Status, organizationResponse.Body, err))
 		return
 	}
 
@@ -447,15 +464,25 @@ func (r *WorkspaceVcsResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 
 	workspaceVcsResponse, err := r.client.Do(workspaceVcsRequest)
-	if err != nil {
-		resp.Diagnostics.AddError("Error executing vcs resource request", fmt.Sprintf("Error executing vcs resource request: %s", err))
+	if err != nil || workspaceVcsResponse.StatusCode != http.StatusNoContent {
+		resp.Diagnostics.AddError("Error executing vcs resource request", fmt.Sprintf("Error executing vcs resource request, response status: %s, response body: %s, error: %s", workspaceVcsResponse.Status, workspaceVcsResponse.Body, err))
 		return
 	}
 
 	tflog.Info(ctx, "Delete response code: "+strconv.Itoa(workspaceVcsResponse.StatusCode))
-
 }
 
 func (r *WorkspaceVcsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: 'organization_ID,Workspace_ID', Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }
