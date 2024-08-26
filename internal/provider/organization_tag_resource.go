@@ -131,20 +131,20 @@ func (r *OrganizationTagResource) Create(ctx context.Context, req resource.Creat
 
 	organizationTagResponse, err := r.client.Do(organizationTagRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing organization tag resource request", fmt.Sprintf("Error executing organization tag resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing organization tag resource request", fmt.Sprintf("Error executing organization tag resource request, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(organizationTagResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading organization tag resource response")
+		tflog.Error(ctx, fmt.Sprintf("Error reading organization tag resource response, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 	}
 	newOrganizationTag := &client.OrganizationTagEntity{}
 
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), newOrganizationTag)
 
 	if err != nil {
-		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response: %s", err))
+		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 		return
 	}
 
@@ -176,13 +176,13 @@ func (r *OrganizationTagResource) Read(ctx context.Context, req resource.ReadReq
 
 	organizationTagResponse, err := r.client.Do(organizationTagRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing organization tag resource request", fmt.Sprintf("Error executing organization tag resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing organization tag resource request", fmt.Sprintf("Error executing organization tag resource request, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(organizationTagResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading organization tag resource response")
+		tflog.Error(ctx, fmt.Sprintf("Error reading organization tag resource response, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 	}
 	organizationTag := &client.OrganizationTagEntity{}
 
@@ -190,7 +190,7 @@ func (r *OrganizationTagResource) Read(ctx context.Context, req resource.ReadReq
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), organizationTag)
 
 	if err != nil {
-		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response: %s", err))
+		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 		return
 	}
 
@@ -241,13 +241,13 @@ func (r *OrganizationTagResource) Update(ctx context.Context, req resource.Updat
 
 	organizationTagResponse, err := r.client.Do(organizationTagRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing organization tag resource request", fmt.Sprintf("Error executing organization tag resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing organization tag resource request", fmt.Sprintf("Error executing organization tag resource request, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(organizationTagResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading organization tag resource response")
+		tflog.Error(ctx, fmt.Sprintf("Error reading organization tag resource response, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"success": string(bodyResponse)})
@@ -262,13 +262,13 @@ func (r *OrganizationTagResource) Update(ctx context.Context, req resource.Updat
 
 	organizationTagResponse, err = r.client.Do(organizationTagRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing organization tag resource request", fmt.Sprintf("Error executing organization tag resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing organization tag resource request", fmt.Sprintf("Error executing organization tag resource request, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err = io.ReadAll(organizationTagResponse.Body)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading organization tag resource response body", fmt.Sprintf("Error reading organization tag resource response body: %s", err))
+		resp.Diagnostics.AddError("Error reading organization tag resource response body", fmt.Sprintf("Error reading organization tag resource response body, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
@@ -304,13 +304,24 @@ func (r *OrganizationTagResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	_, err = r.client.Do(reqOrg)
-	if err != nil {
-		resp.Diagnostics.AddError("Error executing organization tag resource request", fmt.Sprintf("Error executing organization tag resource request: %s", err))
+	organizationTagResponse, err := r.client.Do(reqOrg)
+	if err != nil || organizationTagResponse.StatusCode != http.StatusNoContent {
+		resp.Diagnostics.AddError("Error executing organization tag resource request", fmt.Sprintf("Error executing organization tag resource request, response status: %s, response body: %s, body: %s", organizationTagResponse.Status, organizationTagResponse.Body, err))
 		return
 	}
 }
 
 func (r *OrganizationTagResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: 'organization_ID,ID', Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }

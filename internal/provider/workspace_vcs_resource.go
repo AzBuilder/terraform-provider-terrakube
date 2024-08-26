@@ -478,7 +478,7 @@ func (r *WorkspaceVcsResource) ImportState(ctx context.Context, req resource.Imp
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: 'organization_ID,Workspace_ID', Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: 'organization_ID,ID', Got: %q", req.ID),
 		)
 		return
 	}

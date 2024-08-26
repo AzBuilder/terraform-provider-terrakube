@@ -47,3 +47,12 @@ resource "terrakube_vcs" "vcs" {
 - `connect_url` (String) The connect URL of the VCS connection, after adding the VCS connection, please logon to this URL to connect.
 - `id` (String) Variable Id
 - `status` (String) The status of the VCS connection. IMPORTANT NOTE: if the status is not 'PENDING', please logon to the connect_url to connect!!.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# Organization VCS can be import with organization_id,id
+terraform import terrakube_vcs.example 00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000000
+```

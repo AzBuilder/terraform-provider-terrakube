@@ -151,20 +151,20 @@ func (r *OrganizationTemplateResource) Create(ctx context.Context, req resource.
 
 	organizationTemplateResponse, err := r.client.Do(organizationTemplateRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing organization template resource request", fmt.Sprintf("Error executing organization template resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing organization template resource request", fmt.Sprintf("Error executing organization template resource request, response status: %s, response body: %s, error: %s", organizationTemplateResponse.Status, organizationTemplateResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(organizationTemplateResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading organization template resource response")
+		tflog.Error(ctx, fmt.Sprintf("Error reading organization template resource response, response status: %s, response body: %s, error: %s", organizationTemplateResponse.Status, organizationTemplateResponse.Body, err))
 	}
 	organizationTemplate := &client.OrganizationTemplateEntity{}
 
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), organizationTemplate)
 	tflog.Info(ctx, string(bodyResponse))
 	if err != nil {
-		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response: %s", err))
+		resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response, response status: %s, response body: %s, error: %s", organizationTemplateResponse.Status, organizationTemplateResponse.Body, err))
 		return
 	}
 
@@ -204,13 +204,13 @@ func (r *OrganizationTemplateResource) Read(ctx context.Context, req resource.Re
 
 	organizationTemplateResponse, err := r.client.Do(organizationTemplateRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing organization template resource request", fmt.Sprintf("Error executing organization template resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing organization template resource request", fmt.Sprintf("Error executing organization template resource request, response status: %s, response body: %s, error: %s", organizationTemplateResponse.Status, organizationTemplateResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(organizationTemplateResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading organization template resource response")
+		tflog.Error(ctx, fmt.Sprintf("Error reading organization template resource response, response status: %s, response body: %s, error: %s", organizationTemplateResponse.Status, organizationTemplateResponse.Body, err))
 	}
 	organizationTemplate := &client.OrganizationTemplateEntity{}
 
@@ -283,13 +283,13 @@ func (r *OrganizationTemplateResource) Update(ctx context.Context, req resource.
 
 	organizationTemplateResponse, err := r.client.Do(organizationTemplateRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing organization template resource request", fmt.Sprintf("Error executing organization template resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing organization template resource request", fmt.Sprintf("Error executing organization template resource request, response status: %s, response body: %s, error: %s", organizationTemplateResponse.Status, organizationTemplateResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(organizationTemplateResponse.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading organization template resource response")
+		tflog.Error(ctx, fmt.Sprintf("Error reading organization template resource response, response status: %s, response body: %s, error: %s", organizationTemplateResponse.Status, organizationTemplateResponse.Body, err))
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"success": string(bodyResponse)})
@@ -304,13 +304,13 @@ func (r *OrganizationTemplateResource) Update(ctx context.Context, req resource.
 
 	organizationTemplateResponse, err = r.client.Do(organizationTemplateRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing organization template resource request", fmt.Sprintf("Error executing organization template resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing organization template resource request", fmt.Sprintf("Error executing organization template resource request, response status: %s, response body: %s, error: %s", organizationTemplateResponse.Status, organizationTemplateResponse.Body, err))
 		return
 	}
 
 	bodyResponse, err = io.ReadAll(organizationTemplateResponse.Body)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading organization template resource response body", fmt.Sprintf("Error reading organization template resource response body: %s", err))
+		resp.Diagnostics.AddError("Error reading organization template resource response body", fmt.Sprintf("Error reading organization template resource response body, response status: %s, response body: %s, error: %s", organizationTemplateResponse.Status, organizationTemplateResponse.Body, err))
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
@@ -354,13 +354,24 @@ func (r *OrganizationTemplateResource) Delete(ctx context.Context, req resource.
 		return
 	}
 
-	_, err = r.client.Do(organizationTemplateRequest)
-	if err != nil {
-		resp.Diagnostics.AddError("Error executing organization template resource request", fmt.Sprintf("Error executing organization template resource request: %s", err))
+	organizationTemplateResponse, err := r.client.Do(organizationTemplateRequest)
+	if err != nil || organizationTemplateResponse.StatusCode != http.StatusNoContent {
+		resp.Diagnostics.AddError("Error executing organization template resource request", fmt.Sprintf("Error executing organization template resource request, response status: %s, response body: %s, error: %s", organizationTemplateResponse.Status, organizationTemplateResponse.Body, err))
 		return
 	}
 }
 
 func (r *OrganizationTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: 'organization_ID,ID', Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }

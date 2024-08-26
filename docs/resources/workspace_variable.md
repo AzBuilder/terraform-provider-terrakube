@@ -53,3 +53,12 @@ resource "terrakube_workspace_variable" "sample2" {
 ### Read-Only
 
 - `id` (String) Variable Id
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# Organization Workspace Variable can be import with organization_id,workspace_id,id
+terraform import terrakube_workspace_variable.example 00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000000
+```
