@@ -40,3 +40,12 @@ resource "terrakube_team" "team" {
 ### Read-Only
 
 - `id` (String) Team Id
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# Team can be import with organization_id,id
+terraform import terrakube_team.example 00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000000
+```

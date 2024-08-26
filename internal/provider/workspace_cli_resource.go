@@ -6,6 +6,12 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+	"terraform-provider-terrakube/internal/client"
+
 	"github.com/google/jsonapi"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -14,11 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
-	"terraform-provider-terrakube/internal/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -402,5 +403,16 @@ func (r *WorkspaceCliResource) Delete(ctx context.Context, req resource.DeleteRe
 }
 
 func (r *WorkspaceCliResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: 'organization_ID,ID', Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }

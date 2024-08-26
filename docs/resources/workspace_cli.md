@@ -47,3 +47,12 @@ resource "terrakube_workspace_cli" "sample2" {
 ### Read-Only
 
 - `id` (String) Workspace CLI Id
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# Workspace_cli can be import with organization_id,id
+terraform import terrakube_workspace_cli.example 00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000000
+```

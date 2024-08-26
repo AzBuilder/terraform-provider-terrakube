@@ -30,3 +30,12 @@ resource "terrakube_organization_tag" "example" {
 ### Read-Only
 
 - `id` (String) Organization Tag Id
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# Organization Tag can be import with organization_id,id
+terraform import terrakube_organization_tag.example 00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000000
+```
