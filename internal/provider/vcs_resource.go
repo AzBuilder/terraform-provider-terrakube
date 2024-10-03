@@ -42,8 +42,10 @@ type VcsResourceModel struct {
 	Name           types.String `tfsdk:"name"`
 	Description    types.String `tfsdk:"description"`
 	VcsType        types.String `tfsdk:"vcs_type"`
+	ConnectionType types.String `tfsdk:"connection_type"`
 	ClientId       types.String `tfsdk:"client_id"`
 	ClientSecret   types.String `tfsdk:"client_secret"`
+	PrivateKey     types.String `tfsdk:"private_key"`
 	Endpoint       types.String `tfsdk:"endpoint"`
 	ApiUrl         types.String `tfsdk:"api_url"`
 	Status         types.String `tfsdk:"status"`
@@ -89,14 +91,34 @@ func (r *VcsResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 					stringvalidator.OneOf("GITHUB", "GITLAB", "BITBUCKET", "AZURE_DEVOPS"),
 				},
 			},
+			"connection_type": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("OAUTH"),
+				Description: "The connection type of the VCS connection",
+				Validators: []validator.String{
+					stringvalidator.OneOf("OAUTH", "STANDALONE"),
+				},
+			},
 			"client_id": schema.StringAttribute{
 				Required:    true,
 				Description: "The client ID of the VCS connection",
 			},
 			"client_secret": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				Description: "The secret of the VCS connection",
+				Validators: []validator.String{
+					stringvalidator.AtLeastOneOf(path.MatchRelative().AtParent().AtName("client_secret"), path.MatchRelative().AtParent().AtName("private_key")),
+				},
+			},
+			"private_key": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The private key in PKCS8 format of the VCS connection. Please use command `openssl pkcs8 -topk8 -inform PEM -inform pem -outform pem -in github_rsa_private_key.pem -out private_key.pem -nocrypt` to convert the private key to PKCS8 format form Github default RSA.",
+				Validators: []validator.String{
+					stringvalidator.AtLeastOneOf(path.MatchRelative().AtParent().AtName("client_secret"), path.MatchRelative().AtParent().AtName("private_key")),
+				},
 			},
 			"endpoint": schema.StringAttribute{
 				Optional: true,
@@ -174,14 +196,16 @@ func (r *VcsResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	bodyRequest := &client.VcsEntity{
-		Name:         plan.Name.ValueString(),
-		Description:  plan.Description.ValueString(),
-		VcsType:      plan.VcsType.ValueString(),
-		ClientId:     plan.ClientId.ValueString(),
-		ClientSecret: plan.ClientSecret.ValueString(),
-		Endpoint:     plan.Endpoint.ValueString(),
-		ApiUrl:       plan.ApiUrl.ValueString(),
-		Status:       plan.Status.ValueString(),
+		Name:           plan.Name.ValueString(),
+		Description:    plan.Description.ValueString(),
+		VcsType:        plan.VcsType.ValueString(),
+		ConnectionType: plan.ConnectionType.ValueString(),
+		ClientId:       plan.ClientId.ValueString(),
+		ClientSecret:   plan.ClientSecret.ValueString(),
+		PrivateKey:     plan.PrivateKey.ValueString(),
+		Endpoint:       plan.Endpoint.ValueString(),
+		ApiUrl:         plan.ApiUrl.ValueString(),
+		Status:         plan.Status.ValueString(),
 	}
 	var out = new(bytes.Buffer)
 	err := jsonapi.MarshalPayload(out, bodyRequest)
@@ -201,7 +225,7 @@ func (r *VcsResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	vcsResponse, err := r.client.Do(vcsRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing VCS resource request", fmt.Sprintf("Error executing VCS resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing VCS resource request", fmt.Sprintf("Error executing VCS resource request, response status %s, response body %s, error: %s", vcsResponse.Status, vcsResponse.Request.Body, err))
 		return
 	}
 
@@ -227,10 +251,16 @@ func (r *VcsResource) Create(ctx context.Context, req resource.CreateRequest, re
 	plan.ClientId = types.StringValue(vcs.ClientId)
 	plan.Endpoint = types.StringValue(vcs.Endpoint)
 	plan.ApiUrl = types.StringValue(vcs.ApiUrl)
-	tflog.Info(ctx, "Client secret is not available in the response, setting to original value set in the request.")
-	plan.ClientSecret = types.StringValue(plan.ClientSecret.ValueString())
+	tflog.Info(ctx, "Client secret and private key are not available in the response, setting to original value set in the request.")
+	if plan.ClientSecret.ValueString() != "" {
+		plan.ClientSecret = types.StringValue(plan.ClientSecret.ValueString())
+	}
+	if plan.PrivateKey.ValueString() != "" {
+		plan.PrivateKey = types.StringValue(plan.PrivateKey.ValueString())
+	}
 	plan.ConnectUrl = types.StringValue(plan.ConnectUrl.ValueString())
 	plan.Status = types.StringValue(vcs.Status)
+	plan.ConnectionType = types.StringValue(vcs.ConnectionType)
 
 	if vcs.Status == "PENDING" {
 		tflog.Warn(ctx, fmt.Sprintf("VCS connection is pending, please logon to %s to connect. Check doc here %s", plan.ConnectUrl, helpers.GetVCSProviderDoc()))
@@ -258,7 +288,7 @@ func (r *VcsResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	vcsResponse, err := r.client.Do(vcsRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing VCS resource request", fmt.Sprintf("Error executing VCS resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing VCS resource request", fmt.Sprintf("Error executing VCS resource request, response status %s, response body %s, error: %s", vcsResponse.Status, vcsResponse.Request.Body, err))
 		return
 	}
 
@@ -282,6 +312,7 @@ func (r *VcsResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.Name = types.StringValue(vcs.Name)
 	state.Description = types.StringValue(vcs.Description)
 	state.VcsType = types.StringValue(vcs.VcsType)
+	state.ConnectionType = types.StringValue(vcs.ConnectionType)
 	state.ClientId = types.StringValue(vcs.ClientId)
 	state.Endpoint = types.StringValue(vcs.Endpoint)
 	state.ApiUrl = types.StringValue(vcs.ApiUrl)
@@ -312,15 +343,17 @@ func (r *VcsResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	bodyRequest := &client.VcsEntity{
-		ID:           plan.ID.ValueString(),
-		Name:         plan.Name.ValueString(),
-		Description:  plan.Description.ValueString(),
-		VcsType:      plan.VcsType.ValueString(),
-		ClientId:     plan.ClientId.ValueString(),
-		ClientSecret: plan.ClientSecret.ValueString(),
-		Endpoint:     plan.Endpoint.ValueString(),
-		ApiUrl:       plan.ApiUrl.ValueString(),
-		Status:       plan.Status.ValueString(),
+		ID:             plan.ID.ValueString(),
+		Name:           plan.Name.ValueString(),
+		Description:    plan.Description.ValueString(),
+		VcsType:        plan.VcsType.ValueString(),
+		ConnectionType: plan.ConnectionType.ValueString(),
+		ClientId:       plan.ClientId.ValueString(),
+		ClientSecret:   plan.ClientSecret.ValueString(),
+		PrivateKey:     plan.PrivateKey.ValueString(),
+		Endpoint:       plan.Endpoint.ValueString(),
+		ApiUrl:         plan.ApiUrl.ValueString(),
+		Status:         plan.Status.ValueString(),
 	}
 
 	var out = new(bytes.Buffer)
@@ -343,7 +376,7 @@ func (r *VcsResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	vcsResponse, err := r.client.Do(vcsRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing VCS resource request", fmt.Sprintf("Error executing VCS resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing VCS resource request", fmt.Sprintf("Error executing VCS resource request, response status %s, response body %s, error: %s", vcsResponse.Status, vcsResponse.Request.Body, err))
 		return
 	}
 
@@ -364,7 +397,7 @@ func (r *VcsResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	vcsResponse, err = r.client.Do(vcsRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing VCS resource request", fmt.Sprintf("Error executing VCS resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing VCS resource request", fmt.Sprintf("Error executing VCS resource request, response status %s, response body %s, error: %s", vcsResponse.Status, vcsResponse.Request.Body, err))
 		return
 	}
 
@@ -385,10 +418,17 @@ func (r *VcsResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	plan.ID = types.StringValue(state.ID.ValueString())
 	plan.Name = types.StringValue(vcs.Name)
 	plan.Description = types.StringValue(vcs.Description)
+	plan.ConnectionType = types.StringValue(vcs.ConnectionType)
 	plan.VcsType = types.StringValue(vcs.VcsType)
 	plan.ClientId = types.StringValue(vcs.ClientId)
-	tflog.Info(ctx, "Client secret is not available in the response, setting to original value set in the request.")
-	plan.ClientSecret = types.StringValue(plan.ClientSecret.ValueString())
+	if plan.ClientSecret.ValueString() != "" {
+		tflog.Info(ctx, "Client secret is not available in the response, setting to original value set in the request.")
+		plan.ClientSecret = types.StringValue(plan.ClientSecret.ValueString())
+	}
+	if plan.PrivateKey.ValueString() != "" {
+		tflog.Info(ctx, "Private key is not available in the response, setting to original value set in the request.")
+		plan.PrivateKey = types.StringValue(plan.PrivateKey.ValueString())
+	}
 	plan.Endpoint = types.StringValue(vcs.Endpoint)
 	plan.ApiUrl = types.StringValue(vcs.ApiUrl)
 	plan.Status = types.StringValue(vcs.Status)
@@ -420,7 +460,7 @@ func (r *VcsResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	vcsResponse, err := r.client.Do(vcsRequest)
 	if err != nil || vcsResponse.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error executing VCS resource request", fmt.Sprintf("Error executing VCS resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing VCS resource request", fmt.Sprintf("Error executing VCS resource request, response status %s, response body %s, error: %s", vcsResponse.Status, vcsResponse.Request.Body, err))
 		return
 	}
 }
@@ -503,6 +543,9 @@ func (r VcsResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequ
 	}
 	if plan.ApiUrl.ValueString() == "" {
 		plan.ApiUrl = types.StringValue(apiUrl)
+	}
+	if plan.ConnectionType.Equal(types.StringValue("STANDALONE")) {
+		plan.Status = types.StringValue("COMPLETED")
 	}
 	plan.ConnectUrl = types.StringValue(connectUrl)
 
