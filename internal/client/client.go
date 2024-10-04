@@ -28,6 +28,7 @@ type OrganizationTagEntity struct {
 type TeamEntity struct {
 	ID              string `jsonapi:"primary,team"`
 	Name            string `jsonapi:"attr,name"`
+	ManageState     bool   `jsonapi:"attr,manageState"`
 	ManageWorkspace bool   `jsonapi:"attr,manageWorkspace"`
 	ManageModule    bool   `jsonapi:"attr,manageModule"`
 	ManageProvider  bool   `jsonapi:"attr,manageProvider"`
