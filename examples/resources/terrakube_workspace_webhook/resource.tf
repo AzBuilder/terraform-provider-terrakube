@@ -1,4 +1,4 @@
-resource "terrakube_webhook" "webhook" {
+resource "terrakube_workspace_webhook" "webhook" {
   organization_id = data.terrakube_organization.org.id
   path            = ["/terraform/.*.tf"]
   branch          = ["feat", "fix"]

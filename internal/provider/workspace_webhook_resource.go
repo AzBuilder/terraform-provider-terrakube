@@ -26,16 +26,16 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &WebhookResource{}
-var _ resource.ResourceWithImportState = &WebhookResource{}
+var _ resource.Resource = &WorkspaceWebhookResource{}
+var _ resource.ResourceWithImportState = &WorkspaceWebhookResource{}
 
-type WebhookResource struct {
+type WorkspaceWebhookResource struct {
 	client   *http.Client
 	endpoint string
 	token    string
 }
 
-type WebhookResourceModel struct {
+type WorkspaceWebhookResourceModel struct {
 	ID             types.String `tfsdk:"id"`
 	OrganizationId types.String `tfsdk:"organization_id"`
 	WorkspaceId    types.String `tfsdk:"workspace_id"`
@@ -46,15 +46,15 @@ type WebhookResourceModel struct {
 	Event          types.String `tfsdk:"event"`
 }
 
-func NewWebhookResource() resource.Resource {
-	return &WebhookResource{}
+func NewWorkspaceWebhookResource() resource.Resource {
+	return &WorkspaceWebhookResource{}
 }
 
-func (r *WebhookResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_webhook"
+func (r *WorkspaceWebhookResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_workspace_webhook"
 }
 
-func (r *WebhookResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *WorkspaceWebhookResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -104,7 +104,7 @@ func (r *WebhookResource) Schema(ctx context.Context, req resource.SchemaRequest
 	}
 }
 
-func (r *WebhookResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *WorkspaceWebhookResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -112,7 +112,7 @@ func (r *WebhookResource) Configure(ctx context.Context, req resource.ConfigureR
 	providerData, ok := req.ProviderData.(*TerrakubeConnectionData)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Workspace Variable Resource Configure Type",
+			"Unexpected Workspace Webhook Resource Configure Type",
 			fmt.Sprintf("Expected *TerrakubeConnectionData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
@@ -137,8 +137,8 @@ func (r *WebhookResource) Configure(ctx context.Context, req resource.ConfigureR
 	tflog.Debug(ctx, "Configuring Webhook resource", map[string]any{"success": true})
 }
 
-func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan WebhookResourceModel
+func (r *WorkspaceWebhookResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan WorkspaceWebhookResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
@@ -149,13 +149,13 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 	var branchList, pathList []string
 	plan.Branch.ElementsAs(ctx, &branchList, true)
 	plan.Path.ElementsAs(ctx, &pathList, true)
-	bodyRequest := &client.WebhookEntity{
-		ID:            uuid.New().String(),
-		Path:          strings.Join(pathList, ","),
-		Branch:        strings.Join(branchList, ","),
-		TemplateId:    plan.TemplateId.ValueString(),
-		RemoteHookdId: plan.RemoteHookId.ValueString(),
-		Event:         plan.Event.ValueString(),
+	bodyRequest := &client.WorkspaceWebhookEntity{
+		ID:           uuid.New().String(),
+		Path:         strings.Join(pathList, ","),
+		Branch:       strings.Join(branchList, ","),
+		TemplateId:   plan.TemplateId.ValueString(),
+		RemoteHookId: plan.RemoteHookId.ValueString(),
+		Event:        plan.Event.ValueString(),
 	}
 
 	var out = new(bytes.Buffer)
@@ -170,21 +170,21 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	request.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating webhook resource request", fmt.Sprintf("Error creating webhook resource request %s", err))
+		resp.Diagnostics.AddError("Error creating workspace webhook resource request", fmt.Sprintf("Error creating workspace webhook resource request %s", err))
 		return
 	}
 
 	response, err := r.client.Do(request)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing webhook resource request", fmt.Sprintf("Error executing webhook resource request, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
+		resp.Diagnostics.AddError("Error executing workspace webhook resource request", fmt.Sprintf("Error executing workspace webhook resource request, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(response.Body)
 	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Error reading webhook resource, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
+		tflog.Error(ctx, fmt.Sprintf("Error reading workspace webhook resource, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
 	}
-	webhook := &client.WebhookEntity{}
+	webhook := &client.WorkspaceWebhookEntity{}
 
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), webhook)
 
@@ -198,17 +198,17 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 	plan.Path, _ = types.ListValueFrom(ctx, types.StringType, strings.Split(webhook.Path, ","))
 	plan.Branch, _ = types.ListValueFrom(ctx, types.StringType, strings.Split(webhook.Branch, ","))
 	plan.TemplateId = types.StringValue(webhook.TemplateId)
-	plan.RemoteHookId = types.StringValue(webhook.RemoteHookdId)
+	plan.RemoteHookId = types.StringValue(webhook.RemoteHookId)
 	plan.Event = types.StringValue(webhook.Event)
 	plan.ID = types.StringValue(webhook.ID)
 
-	tflog.Info(ctx, "Webhook Resource Created", map[string]any{"success": true})
+	tflog.Info(ctx, "Workspace Webhook Resource Created", map[string]any{"success": true})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state WebhookResourceModel
+func (r *WorkspaceWebhookResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state WorkspaceWebhookResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -219,21 +219,21 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	request.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating webhook resource request", fmt.Sprintf("Error creating webhook resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating workspace webhook resource request", fmt.Sprintf("Error creating workspace webhook resource request: %s", err))
 		return
 	}
 
 	response, err := r.client.Do(request)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing webhook resource request", fmt.Sprintf("Error executing webhook resource request, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
+		resp.Diagnostics.AddError("Error executing workspace webhook resource request", fmt.Sprintf("Error executing workspace webhook resource request, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(response.Body)
 	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Error reading workspace variable resource response, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
+		tflog.Error(ctx, fmt.Sprintf("Error reading workspace webhook resource response, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
 	}
-	webhook := &client.WebhookEntity{}
+	webhook := &client.WorkspaceWebhookEntity{}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), webhook)
@@ -248,7 +248,7 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 	state.Path, _ = types.ListValueFrom(ctx, types.StringType, strings.Split(webhook.Path, ","))
 	state.Branch, _ = types.ListValueFrom(ctx, types.StringType, strings.Split(webhook.Branch, ","))
 	state.TemplateId = types.StringValue(webhook.TemplateId)
-	state.RemoteHookId = types.StringValue(webhook.RemoteHookdId)
+	state.RemoteHookId = types.StringValue(webhook.RemoteHookId)
 	state.Event = types.StringValue(webhook.Event)
 	state.ID = types.StringValue(webhook.ID)
 
@@ -259,13 +259,13 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	tflog.Info(ctx, "Webhook Resource reading", map[string]any{"success": true})
+	tflog.Info(ctx, "Workspace Webhook Resource reading", map[string]any{"success": true})
 }
 
-func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *WorkspaceWebhookResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan WebhookResourceModel
-	var state WebhookResourceModel
+	var plan WorkspaceWebhookResourceModel
+	var state WorkspaceWebhookResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -275,13 +275,13 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	var branchList, pathList []string
 	plan.Branch.ElementsAs(ctx, &branchList, true)
 	plan.Path.ElementsAs(ctx, &pathList, true)
-	bodyRequest := &client.WebhookEntity{
-		Path:          strings.Join(pathList, ","),
-		Branch:        strings.Join(branchList, ","),
-		TemplateId:    plan.TemplateId.ValueString(),
-		RemoteHookdId: plan.RemoteHookId.ValueString(),
-		Event:         plan.Event.ValueString(),
-		ID:            state.ID.ValueString(),
+	bodyRequest := &client.WorkspaceWebhookEntity{
+		Path:         strings.Join(pathList, ","),
+		Branch:       strings.Join(branchList, ","),
+		TemplateId:   plan.TemplateId.ValueString(),
+		RemoteHookId: plan.RemoteHookId.ValueString(),
+		Event:        plan.Event.ValueString(),
+		ID:           state.ID.ValueString(),
 	}
 
 	var out = new(bytes.Buffer)
@@ -302,13 +302,13 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	response, err := r.client.Do(request)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing webhook resource request", fmt.Sprintf("Error executing webhook resource request, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
+		resp.Diagnostics.AddError("Error executing workspace webhook resource request", fmt.Sprintf("Error executing workspace webhook resource request, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
 		return
 	}
 
 	bodyResponse, err := io.ReadAll(response.Body)
 	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Error reading Workspace variable resource response, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
+		tflog.Error(ctx, fmt.Sprintf("Error reading Workspace webhook resource response, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"success": string(bodyResponse)})
@@ -317,24 +317,24 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	request.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating webhook resource request", fmt.Sprintf("Error creating webhook resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating workspace webhook resource request", fmt.Sprintf("Error creating workspace webhook resource request: %s", err))
 		return
 	}
 
 	response, err = r.client.Do(request)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing webhook resource request", fmt.Sprintf("Error executing webhook resource request, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
+		resp.Diagnostics.AddError("Error executing workspace webhook resource request", fmt.Sprintf("Error executing workspace webhook resource request, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
 		return
 	}
 
 	bodyResponse, err = io.ReadAll(response.Body)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading webhook resource response body", fmt.Sprintf("Error reading webhook resource response body, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
+		resp.Diagnostics.AddError("Error reading workspace webhook resource response body", fmt.Sprintf("Error reading workspace webhook resource response body, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
 	}
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
-	webhook := &client.WebhookEntity{}
+	webhook := &client.WorkspaceWebhookEntity{}
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), webhook)
 
 	if err != nil {
@@ -346,14 +346,14 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	plan.Path, _ = types.ListValueFrom(ctx, types.StringType, strings.Split(webhook.Path, ","))
 	plan.Branch, _ = types.ListValueFrom(ctx, types.StringType, strings.Split(webhook.Branch, ","))
 	plan.TemplateId = types.StringValue(webhook.TemplateId)
-	plan.RemoteHookId = types.StringValue(webhook.RemoteHookdId)
+	plan.RemoteHookId = types.StringValue(webhook.RemoteHookId)
 	plan.Event = types.StringValue(webhook.Event)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *WebhookResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data WebhookResourceModel
+func (r *WorkspaceWebhookResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data WorkspaceWebhookResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -365,18 +365,18 @@ func (r *WebhookResource) Delete(ctx context.Context, req resource.DeleteRequest
 	request, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/api/v1/organization/%s/workspace/%s/webhook/%s", r.endpoint, data.OrganizationId.ValueString(), data.WorkspaceId.ValueString(), data.ID.ValueString()), nil)
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating webhook resource request", fmt.Sprintf("Error creating webhook resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating workspace webhook resource request", fmt.Sprintf("Error creating workspace webhook resource request: %s", err))
 		return
 	}
 
 	response, err := r.client.Do(request)
 	if err != nil || response.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error executing webhook resource request", fmt.Sprintf("Error executing webhook resource request, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
+		resp.Diagnostics.AddError("Error executing workspace webhook resource request", fmt.Sprintf("Error executing workspace webhook resource request, response status %s, response body: %s, error: %s", response.Status, response.Body, err))
 		return
 	}
 }
 
-func (r *WebhookResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *WorkspaceWebhookResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idParts := strings.Split(req.ID, ",")
 
 	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {

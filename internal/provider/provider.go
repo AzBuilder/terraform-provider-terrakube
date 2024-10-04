@@ -180,7 +180,7 @@ func (p *TerrakubeProvider) Resources(ctx context.Context) []func() resource.Res
 		NewWorkspaceTagResource,
 		NewWorkspaceVariableResource,
 		NewWorkspaceVcsResource,
-		NewWebhookResource,
+		NewWorkspaceWebhookResource,
 		NewVcsResource,
 	}
 }

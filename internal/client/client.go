@@ -115,11 +115,11 @@ type ModuleEntity struct {
 	Ssh         *SshEntity `jsonapi:"relation,ssh,omitempty"`
 }
 
-type WebhookEntity struct {
-	ID            string `jsonapi:"primary,webhook"`
-	Path          string `jsonapi:"attr,path"`
-	Branch        string `jsonapi:"attr,branch"`
-	TemplateId    string `jsonapi:"attr,templateId"`
-	RemoteHookdId string `jsonapi:"attr,remoteHookId"`
-	Event         string `jsonapi:"attr,event"`
+type WorkspaceWebhookEntity struct {
+	ID           string `jsonapi:"primary,webhook"`
+	Path         string `jsonapi:"attr,path"`
+	Branch       string `jsonapi:"attr,branch"`
+	TemplateId   string `jsonapi:"attr,templateId"`
+	RemoteHookId string `jsonapi:"attr,remoteHookId"`
+	Event        string `jsonapi:"attr,event"`
 }
