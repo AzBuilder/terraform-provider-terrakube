@@ -16,6 +16,7 @@ description: |-
 resource "terrakube_team" "team" {
   name             = "TERRAKUBE_SUPER_ADMIN"
   organization_id  = data.terrakube_organization.org.id
+  manage_state     = false
   manage_workspace = false
   manage_module    = false
   manage_provider  = true
@@ -29,13 +30,17 @@ resource "terrakube_team" "team" {
 
 ### Required
 
+- `name` (String) Team name
+- `organization_id` (String) Terrakube organization id
+
+### Optional
+
 - `manage_module` (Boolean) Allow to manage modules
 - `manage_provider` (Boolean) Allow to manage providers
+- `manage_state` (Boolean) Allow to manage Terraform/OpenTofu state
 - `manage_template` (Boolean) Allow to manage templates
 - `manage_vcs` (Boolean) Allow to manage vcs connections
 - `manage_workspace` (Boolean) Allow to manage workspaces
-- `name` (String) Team name
-- `organization_id` (String) Terrakube organization id
 
 ### Read-Only
 

@@ -11,6 +11,7 @@ import (
 	"terraform-provider-terrakube/internal/client"
 
 	"github.com/google/jsonapi"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
@@ -35,6 +36,7 @@ type TeamResourceModel struct {
 	ID              types.String `tfsdk:"id"`
 	Name            types.String `tfsdk:"name"`
 	OrganizationId  types.String `tfsdk:"organization_id"`
+	ManageState     types.Bool   `tfsdk:"manage_state"`
 	ManageWorkspace types.Bool   `tfsdk:"manage_workspace"`
 	ManageModule    types.Bool   `tfsdk:"manage_module"`
 	ManageProvider  types.Bool   `tfsdk:"manage_provider"`
@@ -68,25 +70,41 @@ func (r *TeamResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				Required:    true,
 				Description: "Team name",
 			},
+			"manage_state": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Allow to manage Terraform/OpenTofu state",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+			},
 			"manage_workspace": schema.BoolAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Allow to manage workspaces",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 			"manage_module": schema.BoolAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Allow to manage modules",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 			"manage_provider": schema.BoolAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Allow to manage providers",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 			"manage_vcs": schema.BoolAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Allow to manage vcs connections",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 			"manage_template": schema.BoolAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Allow to manage templates",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 		},
 	}
@@ -136,11 +154,12 @@ func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	bodyRequest := &client.TeamEntity{
 		Name:            plan.Name.ValueString(),
+		ManageState:     plan.ManageState.ValueBool(),
 		ManageWorkspace: plan.ManageWorkspace.ValueBool(),
 		ManageModule:    plan.ManageModule.ValueBool(),
 		ManageProvider:  plan.ManageProvider.ValueBool(),
 		ManageTemplate:  plan.ManageTemplate.ValueBool(),
-		ManageVcs:       plan.ManageTemplate.ValueBool(),
+		ManageVcs:       plan.ManageVcs.ValueBool(),
 	}
 
 	var out = new(bytes.Buffer)
@@ -182,6 +201,7 @@ func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	plan.ID = types.StringValue(newTeam.ID)
 	plan.Name = types.StringValue(newTeam.Name)
+	plan.ManageState = types.BoolValue(newTeam.ManageState)
 	plan.ManageWorkspace = types.BoolValue(newTeam.ManageWorkspace)
 	plan.ManageModule = types.BoolValue(newTeam.ManageModule)
 	plan.ManageVcs = types.BoolValue(newTeam.ManageVcs)
@@ -231,6 +251,7 @@ func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
+	state.ManageState = types.BoolValue(team.ManageState)
 	state.ManageWorkspace = types.BoolValue(team.ManageWorkspace)
 	state.ManageModule = types.BoolValue(team.ManageModule)
 	state.ManageVcs = types.BoolValue(team.ManageVcs)
@@ -258,11 +279,12 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	bodyRequest := &client.TeamEntity{
+		ManageState:     plan.ManageState.ValueBool(),
 		ManageWorkspace: plan.ManageWorkspace.ValueBool(),
 		ManageModule:    plan.ManageModule.ValueBool(),
 		ManageProvider:  plan.ManageProvider.ValueBool(),
 		ManageTemplate:  plan.ManageTemplate.ValueBool(),
-		ManageVcs:       plan.ManageTemplate.ValueBool(),
+		ManageVcs:       plan.ManageVcs.ValueBool(),
 		ID:              state.ID.ValueString(),
 		Name:            state.Name.ValueString(),
 	}
@@ -327,6 +349,7 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	plan.ID = types.StringValue(state.ID.ValueString())
 	plan.Name = types.StringValue(state.Name.ValueString())
+	plan.ManageState = types.BoolValue(team.ManageState)
 	plan.ManageWorkspace = types.BoolValue(team.ManageWorkspace)
 	plan.ManageModule = types.BoolValue(team.ManageModule)
 	plan.ManageVcs = types.BoolValue(team.ManageVcs)
