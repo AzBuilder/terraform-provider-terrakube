@@ -114,3 +114,12 @@ type ModuleEntity struct {
 	Vcs         *VcsEntity `jsonapi:"relation,vcs,omitempty"`
 	Ssh         *SshEntity `jsonapi:"relation,ssh,omitempty"`
 }
+
+type WorkspaceWebhookEntity struct {
+	ID           string `jsonapi:"primary,webhook"`
+	Path         string `jsonapi:"attr,path"`
+	Branch       string `jsonapi:"attr,branch"`
+	TemplateId   string `jsonapi:"attr,templateId"`
+	RemoteHookId string `jsonapi:"attr,remoteHookId"`
+	Event        string `jsonapi:"attr,event"`
+}
