@@ -95,14 +95,14 @@ func (r *VcsResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Optional:    true,
 				Computed:    true,
 				Default:     stringdefault.StaticString("OAUTH"),
-				Description: "The connection type of the VCS connection",
+				Description: "The connection type of the VCS connection, valid vaules are `OAUTH` and `STANDALONE`, default is `OAUTH`. `STANDALONE` is used for GitHub App only.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("OAUTH", "STANDALONE"),
 				},
 			},
 			"client_id": schema.StringAttribute{
 				Required:    true,
-				Description: "The client ID of the VCS connection",
+				Description: "The client ID or GitHub Application ID for the VCS connection",
 			},
 			"client_secret": schema.StringAttribute{
 				Optional:    true,
@@ -111,6 +111,9 @@ func (r *VcsResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Validators: []validator.String{
 					stringvalidator.AtLeastOneOf(path.MatchRelative().AtParent().AtName("client_secret"), path.MatchRelative().AtParent().AtName("private_key")),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"private_key": schema.StringAttribute{
 				Optional:    true,
@@ -118,6 +121,9 @@ func (r *VcsResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Description: "The private key in PKCS8 format of the VCS connection. Please use command `openssl pkcs8 -topk8 -inform PEM -inform pem -outform pem -in github_rsa_private_key.pem -out private_key.pem -nocrypt` to convert the private key to PKCS8 format form Github default RSA.",
 				Validators: []validator.String{
 					stringvalidator.AtLeastOneOf(path.MatchRelative().AtParent().AtName("client_secret"), path.MatchRelative().AtParent().AtName("private_key")),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"endpoint": schema.StringAttribute{

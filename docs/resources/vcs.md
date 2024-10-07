@@ -30,7 +30,7 @@ resource "terrakube_vcs" "vcs" {
 
 ### Required
 
-- `client_id` (String) The client ID of the VCS connection
+- `client_id` (String) The client ID or GitHub Application ID for the VCS connection
 - `name` (String) The name of the VCS connection
 - `organization_id` (String) Terrakube organization id
 
@@ -38,7 +38,7 @@ resource "terrakube_vcs" "vcs" {
 
 - `api_url` (String) The API URL of the VCS connection
 - `client_secret` (String, Sensitive) The secret of the VCS connection
-- `connection_type` (String) The connection type of the VCS connection
+- `connection_type` (String) The connection type of the VCS connection, valid vaules are `OAUTH` and `STANDALONE`, default is `OAUTH`. `STANDALONE` is used for GitHub App only.
 - `description` (String) The description of the VCS connection
 - `endpoint` (String) The endpoint of the VCS connection
 - `private_key` (String, Sensitive) The private key in PKCS8 format of the VCS connection. Please use command `openssl pkcs8 -topk8 -inform PEM -inform pem -outform pem -in github_rsa_private_key.pem -out private_key.pem -nocrypt` to convert the private key to PKCS8 format form Github default RSA.
