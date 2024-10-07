@@ -296,6 +296,10 @@ func (r *WorkspaceVcsResource) Read(ctx context.Context, req resource.ReadReques
 	state.IaCVersion = types.StringValue(workspace.IaCVersion)
 	state.ID = types.StringValue(workspace.ID)
 
+	if workspace.Vcs != nil {
+		state.VcsId = types.StringValue(workspace.Vcs.ID)
+	}
+
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -327,6 +331,11 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 		TemplateId:    plan.TemplateId.ValueString(),
 		Name:          plan.Name.ValueString(),
 		ID:            state.ID.ValueString(),
+	}
+
+	if !plan.VcsId.IsNull() {
+		tflog.Info(ctx, fmt.Sprintf("Workspace using Vcs connection id: %s", plan.VcsId.ValueString()))
+		bodyRequest.Vcs = &client.VcsEntity{ID: plan.VcsId.ValueString()}
 	}
 
 	var out = new(bytes.Buffer)
