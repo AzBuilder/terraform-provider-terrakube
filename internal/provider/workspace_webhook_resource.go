@@ -150,12 +150,12 @@ func (r *WorkspaceWebhookResource) Create(ctx context.Context, req resource.Crea
 	plan.Branch.ElementsAs(ctx, &branchList, true)
 	plan.Path.ElementsAs(ctx, &pathList, true)
 	bodyRequest := &client.WorkspaceWebhookEntity{
-		ID:           uuid.New().String(),
-		Path:         strings.Join(pathList, ","),
-		Branch:       strings.Join(branchList, ","),
-		TemplateId:   plan.TemplateId.ValueString(),
-		RemoteHookId: plan.RemoteHookId.ValueString(),
-		Event:        plan.Event.ValueString(),
+		ID:         uuid.New().String(),
+		Path:       strings.Join(pathList, ","),
+		Branch:     strings.Join(branchList, ","),
+		TemplateId: plan.TemplateId.ValueString(),
+		// RemoteHookId: plan.RemoteHookId.ValueString(),
+		Event: plan.Event.ValueString(),
 	}
 
 	var out = new(bytes.Buffer)
@@ -279,7 +279,7 @@ func (r *WorkspaceWebhookResource) Update(ctx context.Context, req resource.Upda
 		Path:         strings.Join(pathList, ","),
 		Branch:       strings.Join(branchList, ","),
 		TemplateId:   plan.TemplateId.ValueString(),
-		RemoteHookId: plan.RemoteHookId.ValueString(),
+		RemoteHookId: state.RemoteHookId.ValueString(),
 		Event:        plan.Event.ValueString(),
 		ID:           state.ID.ValueString(),
 	}
