@@ -154,8 +154,7 @@ func (r *WorkspaceWebhookResource) Create(ctx context.Context, req resource.Crea
 		Path:       strings.Join(pathList, ","),
 		Branch:     strings.Join(branchList, ","),
 		TemplateId: plan.TemplateId.ValueString(),
-		// RemoteHookId: plan.RemoteHookId.ValueString(),
-		Event: plan.Event.ValueString(),
+		Event:      plan.Event.ValueString(),
 	}
 
 	var out = new(bytes.Buffer)
