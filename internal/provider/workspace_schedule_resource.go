@@ -147,6 +147,8 @@ func (r *WorkspaceScheduleResource) Create(ctx context.Context, req resource.Cre
 	}
 	workspaceSchedule := &client.WorkspaceScheduleEntity{}
 
+	tflog.Info(ctx, "Body Response", map[string]any{"success": string(bodyResponse)})
+
 	err = jsonapi.UnmarshalPayload(strings.NewReader(string(bodyResponse)), workspaceSchedule)
 
 	if err != nil {

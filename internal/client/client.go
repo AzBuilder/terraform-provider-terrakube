@@ -126,7 +126,7 @@ type WorkspaceWebhookEntity struct {
 }
 
 type WorkspaceScheduleEntity struct {
-	ID         string `jsonapi:"primary,webhook"`
+	ID         string `jsonapi:"primary,schedule"`
 	Schedule   string `jsonapi:"attr,cron"`
 	TemplateId string `jsonapi:"attr,tcl"`
 }
