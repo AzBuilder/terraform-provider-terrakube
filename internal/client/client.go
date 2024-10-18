@@ -124,3 +124,9 @@ type WorkspaceWebhookEntity struct {
 	RemoteHookId string `jsonapi:"attr,remoteHookId"`
 	Event        string `jsonapi:"attr,event"`
 }
+
+type WorkspaceScheduleEntity struct {
+	ID         string `jsonapi:"primary,schedule"`
+	Schedule   string `jsonapi:"attr,cron"`
+	TemplateId string `jsonapi:"attr,tcl"`
+}
