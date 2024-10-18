@@ -183,7 +183,7 @@ func (r *WorkspaceScheduleResource) Read(ctx context.Context, req resource.ReadR
 
 	workspaceScheduleResponse, err := r.client.Do(workspaceScheduleRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing workspace variable resource request", fmt.Sprintf("Error executing workspace variable resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing workspace schedule resource request", fmt.Sprintf("Error executing workspace schedule resource request: %s", err))
 		return
 	}
 
@@ -245,17 +245,17 @@ func (r *WorkspaceScheduleResource) Update(ctx context.Context, req resource.Upd
 	workspaceScheduleReq.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	workspaceScheduleReq.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating Workspace schedule resource request", fmt.Sprintf("Error creating schedule variable resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating Workspace schedule resource request", fmt.Sprintf("Error creating schedule schedule resource request: %s", err))
 		return
 	}
 
-	workspaceVariableResponse, err := r.client.Do(workspaceScheduleReq)
+	workspaceScheduleResponse, err := r.client.Do(workspaceScheduleReq)
 	if err != nil {
 		resp.Diagnostics.AddError("Error executing Workspace schedule resource request", fmt.Sprintf("Error executing Workspace schedule resource request: %s", err))
 		return
 	}
 
-	bodyResponse, err := io.ReadAll(workspaceVariableResponse.Body)
+	bodyResponse, err := io.ReadAll(workspaceScheduleResponse.Body)
 	if err != nil {
 		tflog.Error(ctx, "Error reading Workspace schedule resource response")
 	}
@@ -270,13 +270,13 @@ func (r *WorkspaceScheduleResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	workspaceVariableResponse, err = r.client.Do(workspaceScheduleReq)
+	workspaceScheduleResponse, err = r.client.Do(workspaceScheduleReq)
 	if err != nil {
 		resp.Diagnostics.AddError("Error executing Workspace schedule resource request", fmt.Sprintf("Error executing Workspace schedule resource request: %s", err))
 		return
 	}
 
-	bodyResponse, err = io.ReadAll(workspaceVariableResponse.Body)
+	bodyResponse, err = io.ReadAll(workspaceScheduleResponse.Body)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading Workspace schedule resource response body", fmt.Sprintf("Error reading Workspace schedule resource response body: %s", err))
 	}
@@ -299,7 +299,7 @@ func (r *WorkspaceScheduleResource) Update(ctx context.Context, req resource.Upd
 }
 
 func (r *WorkspaceScheduleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data WorkspaceVariableResourceModel
+	var data WorkspaceScheduleResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -311,7 +311,7 @@ func (r *WorkspaceScheduleResource) Delete(ctx context.Context, req resource.Del
 	workspaceRequest, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/api/v1/workspace/%s/schedule/%s", r.endpoint, data.WorkspaceId.ValueString(), data.ID.ValueString()), nil)
 	workspaceRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating Workspace schedule resource request", fmt.Sprintf("Error creating schedule variable resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating Workspace schedule resource request", fmt.Sprintf("Error creating schedule schedule resource request: %s", err))
 		return
 	}
 

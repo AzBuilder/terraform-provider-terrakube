@@ -16,7 +16,7 @@ description: |-
 resource "terrakube_organization" "organization" {
   name            = "sample-organization"
   description     = "sample organization description"
-  execution_mode  = "remote"
+  executionModule = "remote"
 }
 ```
 
