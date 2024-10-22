@@ -89,11 +89,11 @@ func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional:    true,
 				Description: "Ssh connection ID for private modules",
 			},
-            "tag_prefix": schema.StringAttribute{
+			"tag_prefix": schema.StringAttribute{
 				Optional:    true,
 				Description: "Prefix tag mono-repository modules. module/ will pick up any tag starting with 'module/*'",
 			},
-            "folder": schema.StringAttribute{
+			"folder": schema.StringAttribute{
 				Optional:    true,
 				Description: "Folder to look into for module files. Need to preprend a / and append a / to work properly.",
 			},
