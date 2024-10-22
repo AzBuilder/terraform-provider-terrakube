@@ -114,6 +114,8 @@ type ModuleEntity struct {
 	Source      string     `jsonapi:"attr,source"`
 	Vcs         *VcsEntity `jsonapi:"relation,vcs,omitempty"`
 	Ssh         *SshEntity `jsonapi:"relation,ssh,omitempty"`
+	Folder      string     `jsonapi:"attr,folder"`
+	TagPrefix   string     `jsonapi:"attr,tagPrefix"`
 }
 
 type WorkspaceWebhookEntity struct {

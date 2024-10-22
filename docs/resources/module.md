@@ -53,7 +53,9 @@ resource "terrakube_module" "module" {
 
 ### Optional
 
+- `folder` (String) Folder to look into for module files. Need to preprend a / and append a / to work properly.
 - `ssh_id` (String) Ssh connection ID for private modules
+- `tag_prefix` (String) Prefix tag mono-repository modules. module/ will pick up any tag starting with 'module/*'
 - `vcs_id` (String) VCS connection ID for private modules
 
 ### Read-Only

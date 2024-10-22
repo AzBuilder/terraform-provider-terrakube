@@ -39,6 +39,8 @@ type ModuleResourceModel struct {
 	Source         types.String `tfsdk:"source"`
 	VcsId          types.String `tfsdk:"vcs_id"`
 	SshId          types.String `tfsdk:"ssh_id"`
+	TagPrefix      types.String `tfsdk:"tag_prefix"`
+	Folder         types.String `tfsdk:"folder"`
 }
 
 func NewModuleResource() resource.Resource {
@@ -86,6 +88,14 @@ func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"ssh_id": schema.StringAttribute{
 				Optional:    true,
 				Description: "Ssh connection ID for private modules",
+			},
+            "tag_prefix": schema.StringAttribute{
+				Optional:    true,
+				Description: "Prefix tag mono-repository modules. module/ will pick up any tag starting with 'module/*'",
+			},
+            "folder": schema.StringAttribute{
+				Optional:    true,
+				Description: "Folder to look into for module files. Need to preprend a / and append a / to work properly.",
 			},
 		},
 	}
@@ -138,6 +148,8 @@ func (r *ModuleResource) Create(ctx context.Context, req resource.CreateRequest,
 		Description: plan.Description.ValueString(),
 		Provider:    plan.ProviderName.ValueString(),
 		Source:      plan.Source.ValueString(),
+		TagPrefix:   plan.TagPrefix.ValueString(),
+		Folder:      plan.Folder.ValueString(),
 	}
 
 	if !plan.VcsId.IsNull() {
@@ -197,6 +209,8 @@ func (r *ModuleResource) Create(ctx context.Context, req resource.CreateRequest,
 	plan.Description = types.StringValue(newModule.Description)
 	plan.ProviderName = types.StringValue(newModule.Provider)
 	plan.Source = types.StringValue(newModule.Source)
+	plan.TagPrefix = types.StringValue(newModule.TagPrefix)
+	plan.Folder = types.StringValue(newModule.Folder)
 
 	tflog.Info(ctx, "Module Resource Created", map[string]any{"success": true})
 
@@ -245,6 +259,8 @@ func (r *ModuleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	state.Description = types.StringValue(module.Description)
 	state.ProviderName = types.StringValue(module.Provider)
 	state.Source = types.StringValue(module.Source)
+	state.Folder = types.StringValue(module.Folder)
+	state.TagPrefix= types.StringValue(module.TagPrefix)
 
 	if module.Vcs != nil {
 		state.VcsId = types.StringValue(module.Vcs.ID)
@@ -280,6 +296,8 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 		Description: plan.Name.ValueString(),
 		Provider:    plan.ProviderName.ValueString(),
 		Source:      plan.Source.ValueString(),
+		Folder:      plan.Folder.ValueString(),
+		TagPrefix:   plan.TagPrefix.ValueString(),
 	}
 
 	if !plan.VcsId.IsNull() {
@@ -355,6 +373,8 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	plan.Description = types.StringValue(module.Description)
 	plan.ProviderName = types.StringValue(module.Provider)
 	plan.Source = types.StringValue(module.Source)
+	plan.TagPrefix = types.StringValue(module.TagPrefix)
+	plan.Folder = types.StringValue(module.Folder)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
