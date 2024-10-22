@@ -260,7 +260,7 @@ func (r *ModuleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	state.ProviderName = types.StringValue(module.Provider)
 	state.Source = types.StringValue(module.Source)
 	state.Folder = types.StringValue(module.Folder)
-	state.TagPrefix= types.StringValue(module.TagPrefix)
+	state.TagPrefix = types.StringValue(module.TagPrefix)
 
 	if module.Vcs != nil {
 		state.VcsId = types.StringValue(module.Vcs.ID)
