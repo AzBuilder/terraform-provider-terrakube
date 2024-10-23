@@ -293,7 +293,7 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	bodyRequest := &client.ModuleEntity{
 		ID:          state.ID.ValueString(),
 		Name:        plan.Name.ValueString(),
-		Description: plan.Name.ValueString(),
+		Description: plan.Description.ValueString(),
 		Provider:    plan.ProviderName.ValueString(),
 		Source:      plan.Source.ValueString(),
 		Folder:      plan.Folder.ValueString(),
