@@ -52,6 +52,10 @@ func (r *WorkspaceCliResource) Metadata(ctx context.Context, req resource.Metada
 
 func (r *WorkspaceCliResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+	     MarkdownDescription: "Create a CLI workspace for Terrakube. When running plan from UI with CLI workspace " +
+	     "only the current state will be compared to the cloud provider API not taking into account the file contained" +
+	     "in workspace working directory. If you want to fetch files from github use vcs_workspace instead.",
+
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -74,7 +78,7 @@ func (r *WorkspaceCliResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"execution_mode": schema.StringAttribute{
 				Required:    true,
-				Description: "Workspace CLI execution mode (remote or local)",
+				Description: "Workspace CLI execution mode (remote or local). Remote execution will require setting up executor.",
 			},
 			"iac_type": schema.StringAttribute{
 				Required:    true,

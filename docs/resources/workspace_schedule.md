@@ -3,12 +3,12 @@
 page_title: "terrakube_workspace_schedule Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Create a workspace schedule that will allow you to run templates on a regular basis.
 ---
 
 # terrakube_workspace_schedule (Resource)
 
-
+Create a workspace schedule that will allow you to run templates on a regular basis.
 
 
 

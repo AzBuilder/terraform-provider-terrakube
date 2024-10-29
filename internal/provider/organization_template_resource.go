@@ -52,6 +52,9 @@ func (r *OrganizationTemplateResource) Metadata(ctx context.Context, req resourc
 
 func (r *OrganizationTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+	    MarkdownDescription: "Create a template and attach it to your organization. This can be useful to define new" +
+	        "process like drift detection, cost mapping, etc...",
+
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,

@@ -3,12 +3,12 @@
 page_title: "terrakube_module Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Resource for managing modules in Terrakube. This resource allows you to create, read, update, and delete modules within a specified organization.
 ---
 
 # terrakube_module (Resource)
 
-
+Resource for managing modules in Terrakube. This resource allows you to create, read, update, and delete modules within a specified organization.
 
 ## Example Usage
 
@@ -49,7 +49,7 @@ resource "terrakube_module" "module" {
 - `name` (String) Module name
 - `organization_id` (String) Terrakube organization id
 - `provider_name` (String) Module provider name. Example: azurerm, google, aws, etc
-- `source` (String) Source (git using https or ssh protocol)
+- `source` (String) Source repository for the module(git using https or ssh protocol)
 
 ### Optional
 

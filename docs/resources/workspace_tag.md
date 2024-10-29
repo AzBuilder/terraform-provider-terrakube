@@ -3,12 +3,12 @@
 page_title: "terrakube_workspace_tag Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Adds a tag to a workspace resource.
 ---
 
 # terrakube_workspace_tag (Resource)
 
-
+Adds a tag to a workspace resource.
 
 ## Example Usage
 

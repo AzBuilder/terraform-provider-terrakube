@@ -54,6 +54,8 @@ func (r *TeamResource) Metadata(ctx context.Context, req resource.MetadataReques
 
 func (r *TeamResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+	    MarkdownDescription: "Create a team and bind it to an organization. Allows for fined grained access management.",
+
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,

@@ -3,12 +3,12 @@
 page_title: "terrakube_organization_tag Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Create a tag and attach it to your organization.
 ---
 
 # terrakube_organization_tag (Resource)
 
-
+Create a tag and attach it to your organization.
 
 ## Example Usage
 

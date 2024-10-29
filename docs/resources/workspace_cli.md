@@ -3,12 +3,12 @@
 page_title: "terrakube_workspace_cli Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Create a CLI workspace for Terrakube. When running plan from UI with CLI workspace only the current state will be compared to the cloud provider API not taking into account the file containedin workspace working directory. If you want to fetch files from github use vcs_workspace instead.
 ---
 
 # terrakube_workspace_cli (Resource)
 
-
+Create a CLI workspace for Terrakube. When running plan from UI with CLI workspace only the current state will be compared to the cloud provider API not taking into account the file containedin workspace working directory. If you want to fetch files from github use vcs_workspace instead.
 
 ## Example Usage
 
@@ -38,7 +38,7 @@ resource "terrakube_workspace_cli" "sample2" {
 ### Required
 
 - `description` (String) Workspace CLI description
-- `execution_mode` (String) Workspace CLI execution mode (remote or local)
+- `execution_mode` (String) Workspace CLI execution mode (remote or local). Remote execution will require setting up executor.
 - `iac_type` (String) Workspace CLI IaC type (Supported values terraform or tofu)
 - `iac_version` (String) Workspace CLI IaC type
 - `name` (String) Workspace CLI name

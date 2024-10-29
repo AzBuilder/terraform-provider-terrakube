@@ -3,12 +3,12 @@
 page_title: "terrakube_workspace_webhook Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Create a webhook attached to a workspace. Can be useful for automated apply/plan workflows.
 ---
 
 # terrakube_workspace_webhook (Resource)
 
-
+Create a webhook attached to a workspace. Can be useful for automated apply/plan workflows.
 
 ## Example Usage
 
@@ -32,7 +32,7 @@ resource "terrakube_workspace_webhook" "webhook" {
 
 ### Optional
 
-- `branch` (List of String) A list of branches that trigger a run.
+- `branch` (List of String) A list of branches that trigger a run. Support regex for more complex matching.
 - `event` (String) The event type that triggers a run, currently only `PUSH` is supported.
 - `path` (List of String) The file paths in regex that trigger a run.
 - `remote_hook_id` (String) The remote hook ID.

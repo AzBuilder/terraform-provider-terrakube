@@ -48,6 +48,8 @@ func (r *WorkspaceScheduleResource) Metadata(ctx context.Context, req resource.M
 
 func (r *WorkspaceScheduleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+	    MarkdownDescription: "Create a workspace schedule that will allow you to run templates on a regular basis.",
+
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,

@@ -3,12 +3,12 @@
 page_title: "terrakube_organization_template Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Create a template and attach it to your organization. This can be useful to define newprocess like drift detection, cost mapping, etc...
 ---
 
 # terrakube_organization_template (Resource)
 
-
+Create a template and attach it to your organization. This can be useful to define newprocess like drift detection, cost mapping, etc...
 
 ## Example Usage
 

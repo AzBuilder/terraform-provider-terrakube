@@ -3,12 +3,12 @@
 page_title: "terrakube_vcs Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Create a VCS provider for the desired organization. VCS are used by VCS workspace to read github repositories at run time.
 ---
 
 # terrakube_vcs (Resource)
 
-
+Create a VCS provider for the desired organization. VCS are used by VCS workspace to read github repositories at run time.
 
 ## Example Usage
 
