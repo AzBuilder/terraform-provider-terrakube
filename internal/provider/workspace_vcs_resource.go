@@ -127,7 +127,7 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 				Description: "Workspace VCS folder",
 			},
 			"vcs_id": schema.StringAttribute{
-				Optional:    true,
+				Required:    true,
 				Description: "VCS connection ID for private workspaces",
 			},
 		},

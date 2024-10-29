@@ -37,6 +37,7 @@ resource "terrakube_workspace_vcs" "sample1" {
 - `organization_id` (String) Terrakube organization id
 - `repository` (String) Workspace VCS repository
 - `template_id` (String) Default template ID for the workspace
+- `vcs_id` (String) VCS connection ID for private workspaces
 
 ### Optional
 
@@ -45,7 +46,6 @@ resource "terrakube_workspace_vcs" "sample1" {
 - `execution_mode` (String) Workspace VCS execution mode (remote or local)
 - `folder` (String) Workspace VCS folder
 - `iac_type` (String) Workspace VCS IaC type (Supported values terraform or tofu)
-- `vcs_id` (String) VCS connection ID for private workspaces
 
 ### Read-Only
 
