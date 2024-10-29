@@ -53,7 +53,7 @@ func (r *WorkspaceVariableResource) Metadata(ctx context.Context, req resource.M
 
 func (r *WorkspaceVariableResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-	    MarkdownDescription: "Create variables that will be used by this workspace only.",
+		MarkdownDescription: "Create variables that will be used by this workspace only.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

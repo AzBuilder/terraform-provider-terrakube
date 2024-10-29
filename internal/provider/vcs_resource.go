@@ -62,8 +62,8 @@ func (r *VcsResource) Metadata(ctx context.Context, req resource.MetadataRequest
 
 func (r *VcsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-	    MarkdownDescription: "Create a VCS provider for the desired organization. VCS are used by VCS workspace to read " +
-	        "github repositories at run time.",
+		MarkdownDescription: "Create a VCS provider for the desired organization. VCS are used by VCS workspace to read " +
+			"github repositories at run time.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

@@ -53,8 +53,8 @@ func (r *ModuleResource) Metadata(ctx context.Context, req resource.MetadataRequ
 
 func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-	    MarkdownDescription: "Resource for managing modules in Terrakube. " +
-	    		"This resource allows you to create, read, update, and delete modules within a specified organization.",
+		MarkdownDescription: "Resource for managing modules in Terrakube. " +
+			"This resource allows you to create, read, update, and delete modules within a specified organization.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

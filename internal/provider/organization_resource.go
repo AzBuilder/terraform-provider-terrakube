@@ -49,7 +49,7 @@ func (r *OrganizationResource) Metadata(ctx context.Context, req resource.Metada
 
 func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-	    MarkdownDescription: "Creates an Organization on Terrakube instance.",
+		MarkdownDescription: "Creates an Organization on Terrakube instance.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

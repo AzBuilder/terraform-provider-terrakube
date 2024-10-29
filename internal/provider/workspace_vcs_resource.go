@@ -60,9 +60,9 @@ func (r *WorkspaceVcsResource) Metadata(ctx context.Context, req resource.Metada
 
 func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-	    MarkdownDescription: "Create a VCS workspace for Terrakube. When running plan from UI with VCS workspace " +
-	     "it will compare files contained in github repository with the cloud provider. If you only want to compare state " +
-	     "with cloud provider API use CLI workspace instead.",
+		MarkdownDescription: "Create a VCS workspace for Terrakube. When running plan from UI with VCS workspace " +
+			"it will compare files contained in github repository with the cloud provider. If you only want to compare state " +
+			"with cloud provider API use CLI workspace instead.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

@@ -47,7 +47,7 @@ func (r *OrganizationTagResource) Metadata(ctx context.Context, req resource.Met
 
 func (r *OrganizationTagResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-	    MarkdownDescription: "Create a tag and attach it to your organization.",
+		MarkdownDescription: "Create a tag and attach it to your organization.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

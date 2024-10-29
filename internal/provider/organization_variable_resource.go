@@ -53,7 +53,7 @@ func (r *OrganizationVariableResource) Metadata(ctx context.Context, req resourc
 
 func (r *OrganizationVariableResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-	    MarkdownDescription: "Create an organization variable that can be used by all workspaces inside the organization.",
+		MarkdownDescription: "Create an organization variable that can be used by all workspaces inside the organization.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
