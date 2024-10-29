@@ -3,12 +3,12 @@
 page_title: "terrakube_workspace_variable Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Create variables that will be used by this workspace only.
 ---
 
 # terrakube_workspace_variable (Resource)
 
-
+Create variables that will be used by this workspace only.
 
 ## Example Usage
 
@@ -41,12 +41,12 @@ resource "terrakube_workspace_variable" "sample2" {
 
 ### Required
 
-- `category` (String) Variable category (ENV or TERRAFORM)
+- `category` (String) Variable category (ENV or TERRAFORM). ENV variables are injected in workspace environment at runtime.
 - `description` (String) Variable description
-- `hcl` (Boolean) is hcl?
+- `hcl` (Boolean) Parse this field as HashiCorp Configuration Language (HCL). This allows you to interpolate values at runtime.
 - `key` (String) Variable key
 - `organization_id` (String) Terrakube organization id
-- `sensitive` (Boolean) is sensitive?
+- `sensitive` (Boolean) Sensitive variables are never shown in the UI or API. They may appear in Terraform logs if your configuration is designed to output them.
 - `value` (String) Variable value
 - `workspace_id` (String) Terrakube workspace id
 

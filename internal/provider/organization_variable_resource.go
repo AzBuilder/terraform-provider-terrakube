@@ -53,6 +53,8 @@ func (r *OrganizationVariableResource) Metadata(ctx context.Context, req resourc
 
 func (r *OrganizationVariableResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Create an organization variable that can be used by all workspaces inside the organization.",
+
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -79,15 +81,15 @@ func (r *OrganizationVariableResource) Schema(ctx context.Context, req resource.
 			},
 			"category": schema.StringAttribute{
 				Required:    true,
-				Description: "Variable category (ENV or TERRAFORM)",
+				Description: "Variable category (ENV or TERRAFORM). ENV variables are injected in workspace environment at runtime.",
 			},
 			"sensitive": schema.BoolAttribute{
 				Required:    true,
-				Description: "is sensitive?",
+				Description: "Sensitive variables are never shown in the UI or API. They may appear in Terraform logs if your configuration is designed to output them.",
 			},
 			"hcl": schema.BoolAttribute{
 				Required:    true,
-				Description: "is hcl?",
+				Description: "Parse this field as HashiCorp Configuration Language (HCL). This allows you to interpolate values at runtime.",
 			},
 		},
 	}

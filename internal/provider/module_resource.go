@@ -53,6 +53,9 @@ func (r *ModuleResource) Metadata(ctx context.Context, req resource.MetadataRequ
 
 func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Resource for managing modules in Terrakube. " +
+			"This resource allows you to create, read, update, and delete modules within a specified organization.",
+
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -79,7 +82,7 @@ func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"source": schema.StringAttribute{
 				Required:    true,
-				Description: "Source (git using https or ssh protocol)",
+				Description: "Source repository for the module(git using https or ssh protocol)",
 			},
 			"vcs_id": schema.StringAttribute{
 				Optional:    true,

@@ -55,7 +55,14 @@ func (r *WorkspaceWebhookResource) Metadata(ctx context.Context, req resource.Me
 }
 
 func (r *WorkspaceWebhookResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Diagnostics.AddWarning(
+		"WARNING",
+		"In its current implementation, Terrakube creates "+
+			"one webhook for each instance of this resource and github has a default limitation of 20 webhooks per repository.",
+	)
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Create a webhook attached to a workspace. Can be useful for automated apply/plan workflows.",
+
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -79,7 +86,7 @@ func (r *WorkspaceWebhookResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"branch": schema.ListAttribute{
 				Optional:    true,
-				Description: "A list of branches that trigger a run.",
+				Description: "A list of branches that trigger a run. Support regex for more complex matching.",
 				ElementType: types.StringType,
 			},
 			"template_id": schema.StringAttribute{

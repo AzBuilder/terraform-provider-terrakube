@@ -3,12 +3,12 @@
 page_title: "terrakube_team_token Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Create a team token that shares the same privilege. Useful when managing devs access.
 ---
 
 # terrakube_team_token (Resource)
 
-
+Create a team token that shares the same privilege. Useful when managing devs access.
 
 ## Example Usage
 

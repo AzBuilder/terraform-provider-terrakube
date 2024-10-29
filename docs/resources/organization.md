@@ -3,12 +3,12 @@
 page_title: "terrakube_organization Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Creates an Organization on Terrakube instance.
 ---
 
 # terrakube_organization (Resource)
 
-
+Creates an Organization on Terrakube instance.
 
 ## Example Usage
 

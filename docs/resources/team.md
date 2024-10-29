@@ -3,12 +3,12 @@
 page_title: "terrakube_team Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Create a team and bind it to an organization. Allows for fined grained access management.
 ---
 
 # terrakube_team (Resource)
 
-
+Create a team and bind it to an organization. Allows for fined grained access management.
 
 ## Example Usage
 

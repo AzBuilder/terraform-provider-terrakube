@@ -3,17 +3,17 @@
 page_title: "terrakube_workspace_vcs Resource - terrakube"
 subcategory: ""
 description: |-
-  
+  Create a VCS workspace for Terrakube. When running plan from UI with VCS workspace it will compare files contained in github repository with the cloud provider. If you only want to compare state with cloud provider API use CLI workspace instead.
 ---
 
 # terrakube_workspace_vcs (Resource)
 
-
+Create a VCS workspace for Terrakube. When running plan from UI with VCS workspace it will compare files contained in github repository with the cloud provider. If you only want to compare state with cloud provider API use CLI workspace instead.
 
 ## Example Usage
 
 ```terraform
-resource "terrakube_workspace_cli" "sample1" {
+resource "terrakube_workspace_vcs" "sample1" {
   organization_id = data.terrakube_organization.org.id
   name            = "work-from-provider1"
   description     = "sample"
@@ -37,6 +37,7 @@ resource "terrakube_workspace_cli" "sample1" {
 - `organization_id` (String) Terrakube organization id
 - `repository` (String) Workspace VCS repository
 - `template_id` (String) Default template ID for the workspace
+- `vcs_id` (String) VCS connection ID for private workspaces
 
 ### Optional
 
@@ -45,7 +46,6 @@ resource "terrakube_workspace_cli" "sample1" {
 - `execution_mode` (String) Workspace VCS execution mode (remote or local)
 - `folder` (String) Workspace VCS folder
 - `iac_type` (String) Workspace VCS IaC type (Supported values terraform or tofu)
-- `vcs_id` (String) VCS connection ID for private workspaces
 
 ### Read-Only
 
