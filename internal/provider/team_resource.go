@@ -5,13 +5,15 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/google/jsonapi"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"io"
 	"net/http"
 	"strings"
 	"terraform-provider-terrakube/internal/client"
+
+	"github.com/google/jsonapi"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -34,6 +36,7 @@ type TeamResourceModel struct {
 	ID              types.String `tfsdk:"id"`
 	Name            types.String `tfsdk:"name"`
 	OrganizationId  types.String `tfsdk:"organization_id"`
+	ManageState     types.Bool   `tfsdk:"manage_state"`
 	ManageWorkspace types.Bool   `tfsdk:"manage_workspace"`
 	ManageModule    types.Bool   `tfsdk:"manage_module"`
 	ManageProvider  types.Bool   `tfsdk:"manage_provider"`
@@ -51,6 +54,8 @@ func (r *TeamResource) Metadata(ctx context.Context, req resource.MetadataReques
 
 func (r *TeamResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Create a team and bind it to an organization. Allows for fined grained access management.",
+
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -67,25 +72,41 @@ func (r *TeamResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				Required:    true,
 				Description: "Team name",
 			},
+			"manage_state": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Allow to manage Terraform/OpenTofu state",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+			},
 			"manage_workspace": schema.BoolAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Allow to manage workspaces",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 			"manage_module": schema.BoolAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Allow to manage modules",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 			"manage_provider": schema.BoolAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Allow to manage providers",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 			"manage_vcs": schema.BoolAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Allow to manage vcs connections",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 			"manage_template": schema.BoolAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Allow to manage templates",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 		},
 	}
@@ -135,11 +156,12 @@ func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	bodyRequest := &client.TeamEntity{
 		Name:            plan.Name.ValueString(),
+		ManageState:     plan.ManageState.ValueBool(),
 		ManageWorkspace: plan.ManageWorkspace.ValueBool(),
 		ManageModule:    plan.ManageModule.ValueBool(),
 		ManageProvider:  plan.ManageProvider.ValueBool(),
 		ManageTemplate:  plan.ManageTemplate.ValueBool(),
-		ManageVcs:       plan.ManageTemplate.ValueBool(),
+		ManageVcs:       plan.ManageVcs.ValueBool(),
 	}
 
 	var out = new(bytes.Buffer)
@@ -181,6 +203,7 @@ func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	plan.ID = types.StringValue(newTeam.ID)
 	plan.Name = types.StringValue(newTeam.Name)
+	plan.ManageState = types.BoolValue(newTeam.ManageState)
 	plan.ManageWorkspace = types.BoolValue(newTeam.ManageWorkspace)
 	plan.ManageModule = types.BoolValue(newTeam.ManageModule)
 	plan.ManageVcs = types.BoolValue(newTeam.ManageVcs)
@@ -230,6 +253,7 @@ func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
+	state.ManageState = types.BoolValue(team.ManageState)
 	state.ManageWorkspace = types.BoolValue(team.ManageWorkspace)
 	state.ManageModule = types.BoolValue(team.ManageModule)
 	state.ManageVcs = types.BoolValue(team.ManageVcs)
@@ -257,11 +281,12 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	bodyRequest := &client.TeamEntity{
+		ManageState:     plan.ManageState.ValueBool(),
 		ManageWorkspace: plan.ManageWorkspace.ValueBool(),
 		ManageModule:    plan.ManageModule.ValueBool(),
 		ManageProvider:  plan.ManageProvider.ValueBool(),
 		ManageTemplate:  plan.ManageTemplate.ValueBool(),
-		ManageVcs:       plan.ManageTemplate.ValueBool(),
+		ManageVcs:       plan.ManageVcs.ValueBool(),
 		ID:              state.ID.ValueString(),
 		Name:            state.Name.ValueString(),
 	}
@@ -326,6 +351,7 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	plan.ID = types.StringValue(state.ID.ValueString())
 	plan.Name = types.StringValue(state.Name.ValueString())
+	plan.ManageState = types.BoolValue(team.ManageState)
 	plan.ManageWorkspace = types.BoolValue(team.ManageWorkspace)
 	plan.ManageModule = types.BoolValue(team.ManageModule)
 	plan.ManageVcs = types.BoolValue(team.ManageVcs)
@@ -360,5 +386,16 @@ func (r *TeamResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 }
 
 func (r *TeamResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: 'organization_ID,ID', Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }

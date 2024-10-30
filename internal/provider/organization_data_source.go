@@ -4,16 +4,17 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/google/jsonapi"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"io"
 	"net/http"
 	"reflect"
 	"strings"
 	"terraform-provider-terrakube/internal/client"
+
+	"github.com/google/jsonapi"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var (
@@ -109,12 +110,12 @@ func (d *OrganizationDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	resOrg, err := d.client.Do(reqOrg)
 	if err != nil {
-		tflog.Error(ctx, "Error executing organization datasource request")
+		tflog.Error(ctx, fmt.Sprintf("Error executing organization datasource request, response status: %s, response body: %s, error: %s", resOrg.Status, resOrg.Body, err))
 	}
 
 	body, err := io.ReadAll(resOrg.Body)
 	if err != nil {
-		tflog.Error(ctx, "Error reading organization response")
+		tflog.Error(ctx, fmt.Sprintf("Error reading organization response, response status: %s, response body: %s, error: %s", resOrg.Status, resOrg.Body, err))
 	}
 
 	var orgs []interface{}
@@ -122,7 +123,7 @@ func (d *OrganizationDataSource) Read(ctx context.Context, req datasource.ReadRe
 	orgs, err = jsonapi.UnmarshalManyPayload(strings.NewReader(string(body)), reflect.TypeOf(new(client.OrganizationEntity)))
 
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to unmarshal payload", fmt.Sprintf("Unable to marshal payload: %s", err))
+		resp.Diagnostics.AddError("Unable to unmarshal payload", fmt.Sprintf("Unable to marshal payload, response status: %s, response body: %s, error: %s", resOrg.Status, resOrg.Body, err))
 		return
 	}
 

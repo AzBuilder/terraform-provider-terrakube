@@ -5,14 +5,15 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/google/jsonapi"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"terraform-provider-terrakube/internal/client"
+
+	"github.com/google/jsonapi"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -52,6 +53,8 @@ func (r *OrganizationVariableResource) Metadata(ctx context.Context, req resourc
 
 func (r *OrganizationVariableResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Create an organization variable that can be used by all workspaces inside the organization.",
+
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -78,15 +81,15 @@ func (r *OrganizationVariableResource) Schema(ctx context.Context, req resource.
 			},
 			"category": schema.StringAttribute{
 				Required:    true,
-				Description: "Variable category (ENV or TERRAFORM)",
+				Description: "Variable category (ENV or TERRAFORM). ENV variables are injected in workspace environment at runtime.",
 			},
 			"sensitive": schema.BoolAttribute{
 				Required:    true,
-				Description: "is sensitive?",
+				Description: "Sensitive variables are never shown in the UI or API. They may appear in Terraform logs if your configuration is designed to output them.",
 			},
 			"hcl": schema.BoolAttribute{
 				Required:    true,
-				Description: "is hcl?",
+				Description: "Parse this field as HashiCorp Configuration Language (HCL). This allows you to interpolate values at runtime.",
 			},
 		},
 	}
@@ -386,5 +389,16 @@ func (r *OrganizationVariableResource) Delete(ctx context.Context, req resource.
 }
 
 func (r *OrganizationVariableResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: 'organization_ID,ID', Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }

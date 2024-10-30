@@ -5,9 +5,10 @@ package provider
 
 import (
 	"context"
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -57,16 +58,16 @@ func (p *TerrakubeProvider) Schema(ctx context.Context, req provider.SchemaReque
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
-				Required:    true,
-				Description: "Terrakube API Endpoint. Example: https://terrakube-api.minikube.net",
+				Optional:    true,
+				Description: "Terrakube API Endpoint. Example: https://terrakube-api.minikube.net, can also be specified with environment variable `TERRAKUBE_ENDPOINT`.",
 			},
 			"token": schema.StringAttribute{
-				Required:    true,
-				Description: "Personal Access Token generated in Terrakube UI (https://docs.terrakube.io/user-guide/organizations/api-tokens)",
+				Optional:    true,
+				Description: "Access Token generated in Terrakube UI (https://docs.terrakube.io/user-guide/organizations/api-tokens), can also be specificed with environment variable `TERRAKUBE_TOKEN`.",
 			},
 			"insecure_http_client": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Disable https certificate validation",
+				Description: "Disable https certificate validation, default is `false`.",
 			},
 		},
 	}
@@ -168,18 +169,28 @@ func (p *TerrakubeProvider) Configure(ctx context.Context, req provider.Configur
 
 func (p *TerrakubeProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewTeamResource,
 		NewModuleResource,
 		NewOrganizationResource,
-		NewWorkspaceCliResource,
-		NewWorkspaceVariableResource,
+		NewOrganizationTemplateResource,
+		NewOrganizationTagResource,
 		NewOrganizationVariableResource,
+		NewTeamResource,
+		NewTeamTokenResource,
+		NewWorkspaceCliResource,
+		NewWorkspaceTagResource,
+		NewWorkspaceVariableResource,
+		NewWorkspaceVcsResource,
+		NewWorkspaceWebhookResource,
+		NewVcsResource,
+		NewWorkspaceScheduleResource,
 	}
 }
 
 func (p *TerrakubeProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewOrganizationDataSource,
+		NewOrganizationTemplateDataSource,
+		NewOrganizationTagDataSource,
 		NewVcsDataSource,
 		NewSshDataSource,
 	}

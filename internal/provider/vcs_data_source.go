@@ -4,16 +4,18 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"reflect"
+	"strings"
+	"terraform-provider-terrakube/internal/client"
+
 	"github.com/google/jsonapi"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"io"
-	"net/http"
-	"reflect"
-	"strings"
-	"terraform-provider-terrakube/internal/client"
 )
 
 var (
@@ -26,6 +28,10 @@ type VcsDataSourceModel struct {
 	OrganizationId types.String `tfsdk:"organization_id"`
 	Name           types.String `tfsdk:"name"`
 	Description    types.String `tfsdk:"description"`
+	ClientId       types.String `tfsdk:"client_id"`
+	Endpoint       types.String `tfsdk:"endpoint"`
+	ApiUrl         types.String `tfsdk:"api_url"`
+	Status         types.String `tfsdk:"status"`
 }
 
 type VcsDataSource struct {
@@ -94,6 +100,22 @@ func (d *VcsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, re
 				Computed:    true,
 				Description: "Vcs description information",
 			},
+			"client_id": schema.StringAttribute{
+				Computed:    true,
+				Description: "The client id of the Vcs provider",
+			},
+			"endpoint": schema.StringAttribute{
+				Computed:    true,
+				Description: "The endpoint of the Vcs provider",
+			},
+			"api_url": schema.StringAttribute{
+				Computed:    true,
+				Description: "The api url of the Vcs provider",
+			},
+			"status": schema.StringAttribute{
+				Computed:    true,
+				Description: "The status of the Vcs provider",
+			},
 		},
 	}
 }
@@ -103,7 +125,8 @@ func (d *VcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	req.Config.Get(ctx, &state)
 
-	requestVcs, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/organization/%s/vcs?filter[vcs]=name==%s", d.endpoint, state.OrganizationId.ValueString(), state.Name.ValueString()), nil)
+	apiURL := fmt.Sprintf("%s/api/v1/organization/%s/vcs?filter[vcs]=name=='%s'", d.endpoint, state.OrganizationId.ValueString(), url.PathEscape(state.Name.ValueString()))
+	requestVcs, err := http.NewRequest(http.MethodGet, apiURL, nil)
 	requestVcs.Header.Add("Authorization", fmt.Sprintf("Bearer %s", d.token))
 	requestVcs.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
@@ -129,7 +152,7 @@ func (d *VcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	vcss, err = jsonapi.UnmarshalManyPayload(strings.NewReader(string(bodyResponse)), reflect.TypeOf(new(client.VcsEntity)))
 
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to un marshal payload", fmt.Sprintf("Unable to unmarshal payload: %s", err))
+		resp.Diagnostics.AddError("Unable to unmarshal payload", fmt.Sprintf("Unable to unmarshal payload, error: %s, response status %s, response body %s", err, responseVcs.Status, string(bodyResponse)))
 		return
 	}
 
@@ -137,6 +160,10 @@ func (d *VcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		data, _ := vcs.(*client.VcsEntity)
 		state.ID = types.StringValue(data.ID)
 		state.Description = types.StringValue(data.Description)
+		state.ClientId = types.StringValue(data.ClientId)
+		state.Endpoint = types.StringValue(data.Endpoint)
+		state.ApiUrl = types.StringValue(data.ApiUrl)
+		state.Status = types.StringValue(data.Status)
 	}
 
 	diags := resp.State.Set(ctx, &state)

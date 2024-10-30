@@ -6,6 +6,12 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+	"terraform-provider-terrakube/internal/client"
+
 	"github.com/google/jsonapi"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -14,11 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
-	"terraform-provider-terrakube/internal/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -51,6 +52,10 @@ func (r *WorkspaceCliResource) Metadata(ctx context.Context, req resource.Metada
 
 func (r *WorkspaceCliResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Create a CLI workspace for Terrakube. When running plan from UI with CLI workspace " +
+			"only the current state will be compared to the cloud provider API not taking into account the file contained" +
+			"in workspace working directory. If you want to fetch files from github use vcs_workspace instead.",
+
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -73,7 +78,7 @@ func (r *WorkspaceCliResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"execution_mode": schema.StringAttribute{
 				Required:    true,
-				Description: "Workspace CLI execution mode (remote or local)",
+				Description: "Workspace CLI execution mode (remote or local). Remote execution will require setting up executor.",
 			},
 			"iac_type": schema.StringAttribute{
 				Required:    true,
@@ -387,13 +392,13 @@ func (r *WorkspaceCliResource) Delete(ctx context.Context, req resource.DeleteRe
 	workspaceCliRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	workspaceCliRequest.Header.Add("Content-Type", "application/vnd.api+json")
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating team resource request", fmt.Sprintf("Error creating team resource request: %s", err))
+		resp.Diagnostics.AddError("Error creating cli resource request", fmt.Sprintf("Error creating cli resource request: %s", err))
 		return
 	}
 
 	workspaceCliResponse, err := r.client.Do(workspaceCliRequest)
 	if err != nil {
-		resp.Diagnostics.AddError("Error executing team resource request", fmt.Sprintf("Error executing team resource request: %s", err))
+		resp.Diagnostics.AddError("Error executing cli resource request", fmt.Sprintf("Error executing cli resource request: %s", err))
 		return
 	}
 
@@ -402,5 +407,16 @@ func (r *WorkspaceCliResource) Delete(ctx context.Context, req resource.DeleteRe
 }
 
 func (r *WorkspaceCliResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: 'organization_ID,ID', Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }
