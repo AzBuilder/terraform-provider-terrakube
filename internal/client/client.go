@@ -125,6 +125,13 @@ type CollectionEntity struct {
 	Priority    int32  `jsonapi:"attr,priority"`
 }
 
+type AgentEntity struct {
+	ID          string `jsonapi:"primary,agent"`
+	Name        string `jsonapi:"attr,name"`
+	Description string `jsonapi:"attr,description"`
+	Url         string `jsonapi:"attr,url"`
+}
+
 type CollectionItemEntity struct {
 	ID          string `jsonapi:"primary,item"`
 	Key         string `jsonapi:"attr,key"`
