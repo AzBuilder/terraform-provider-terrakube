@@ -13,7 +13,7 @@ Create collection reference that will be used by this workspace only.
 ## Example Usage
 
 ```terraform
-resource "terrakube_workspace_variable" "sample1" {
+resource "terrakube_workspace_reference" "sample1" {
   organization_id = data.terrakube_organization.org.id
   collection_id   = terrakube_collection.sample1.id
   workspace_id    = terrakube_workspace_cli.sample1.id
