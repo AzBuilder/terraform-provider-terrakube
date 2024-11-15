@@ -127,7 +127,7 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 				Description: "Workspace VCS folder",
 			},
 			"vcs_id": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "VCS connection ID for private workspaces",
 			},
 		},
@@ -238,12 +238,16 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 	plan.Branch = types.StringValue(newWorkspaceVcs.Branch)
 	plan.IaCType = types.StringValue(newWorkspaceVcs.IaCType)
 	plan.IaCVersion = types.StringValue(newWorkspaceVcs.IaCVersion)
-	plan.Folder = types.StringValue(newWorkspaceVcs.Folder)
+
 	plan.TemplateId = types.StringValue(newWorkspaceVcs.TemplateId)
 	plan.ExecutionMode = types.StringValue(newWorkspaceVcs.ExecutionMode)
 
-	if newWorkspaceVcs.Vcs != nil {
+	if !plan.VcsId.IsNull() {
 		plan.VcsId = types.StringValue(newWorkspaceVcs.Vcs.ID)
+	}
+
+	if !plan.Folder.IsNull() {
+		plan.Folder = types.StringValue(newWorkspaceVcs.Folder)
 	}
 
 	tflog.Info(ctx, "Workspace VCS Resource Created", map[string]any{"success": true})

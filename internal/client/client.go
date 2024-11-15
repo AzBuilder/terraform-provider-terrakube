@@ -114,8 +114,32 @@ type ModuleEntity struct {
 	Source      string     `jsonapi:"attr,source"`
 	Vcs         *VcsEntity `jsonapi:"relation,vcs,omitempty"`
 	Ssh         *SshEntity `jsonapi:"relation,ssh,omitempty"`
-	Folder      string     `jsonapi:"attr,folder"`
-	TagPrefix   string     `jsonapi:"attr,tagPrefix"`
+	Folder      *string    `jsonapi:"attr,folder"`
+	TagPrefix   *string    `jsonapi:"attr,tagPrefix"`
+}
+
+type CollectionEntity struct {
+	ID          string `jsonapi:"primary,collection"`
+	Name        string `jsonapi:"attr,name"`
+	Description string `jsonapi:"attr,description"`
+	Priority    int32  `jsonapi:"attr,priority"`
+}
+
+type CollectionItemEntity struct {
+	ID          string `jsonapi:"primary,item"`
+	Key         string `jsonapi:"attr,key"`
+	Value       string `jsonapi:"attr,value"`
+	Description string `jsonapi:"attr,description"`
+	Category    string `jsonapi:"attr,category"`
+	Sensitive   bool   `jsonapi:"attr,sensitive"`
+	Hcl         bool   `jsonapi:"attr,hcl"`
+}
+
+type CollectionReferenceEntity struct {
+	ID          string            `jsonapi:"primary,reference"`
+	Description string            `jsonapi:"attr,description"`
+	Workspace   *WorkspaceEntity  `jsonapi:"relation,workspace,omitempty"`
+	Collection  *CollectionEntity `jsonapi:"relation,collection,omitempty"`
 }
 
 type WorkspaceWebhookEntity struct {
