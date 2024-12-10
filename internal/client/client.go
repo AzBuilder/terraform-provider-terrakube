@@ -26,14 +26,16 @@ type OrganizationTagEntity struct {
 }
 
 type TeamEntity struct {
-	ID              string `jsonapi:"primary,team"`
-	Name            string `jsonapi:"attr,name"`
-	ManageState     bool   `jsonapi:"attr,manageState"`
-	ManageWorkspace bool   `jsonapi:"attr,manageWorkspace"`
-	ManageModule    bool   `jsonapi:"attr,manageModule"`
-	ManageProvider  bool   `jsonapi:"attr,manageProvider"`
-	ManageVcs       bool   `jsonapi:"attr,manageVcs"`
-	ManageTemplate  bool   `jsonapi:"attr,manageTemplate"`
+	ID               string `jsonapi:"primary,team"`
+	Name             string `jsonapi:"attr,name"`
+	ManageState      bool   `jsonapi:"attr,manageState"`
+	ManageWorkspace  bool   `jsonapi:"attr,manageWorkspace"`
+	ManageModule     bool   `jsonapi:"attr,manageModule"`
+	ManageProvider   bool   `jsonapi:"attr,manageProvider"`
+	ManageVcs        bool   `jsonapi:"attr,manageVcs"`
+	ManageTemplate   bool   `jsonapi:"attr,manageTemplate"`
+	ManageJob        bool   `jsonapi:"attr,manageJob"`
+	ManageCollection bool   `jsonapi:"attr,manageCollection"`
 }
 
 type TeamTokenEntity struct {
