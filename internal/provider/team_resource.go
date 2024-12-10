@@ -33,15 +33,17 @@ type TeamResource struct {
 }
 
 type TeamResourceModel struct {
-	ID              types.String `tfsdk:"id"`
-	Name            types.String `tfsdk:"name"`
-	OrganizationId  types.String `tfsdk:"organization_id"`
-	ManageState     types.Bool   `tfsdk:"manage_state"`
-	ManageWorkspace types.Bool   `tfsdk:"manage_workspace"`
-	ManageModule    types.Bool   `tfsdk:"manage_module"`
-	ManageProvider  types.Bool   `tfsdk:"manage_provider"`
-	ManageVcs       types.Bool   `tfsdk:"manage_vcs"`
-	ManageTemplate  types.Bool   `tfsdk:"manage_template"`
+	ID               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	OrganizationId   types.String `tfsdk:"organization_id"`
+	ManageState      types.Bool   `tfsdk:"manage_state"`
+	ManageWorkspace  types.Bool   `tfsdk:"manage_workspace"`
+	ManageModule     types.Bool   `tfsdk:"manage_module"`
+	ManageProvider   types.Bool   `tfsdk:"manage_provider"`
+	ManageVcs        types.Bool   `tfsdk:"manage_vcs"`
+	ManageTemplate   types.Bool   `tfsdk:"manage_template"`
+	ManageJob        types.Bool   `tfsdk:"manage_job"`
+	ManageCollection types.Bool   `tfsdk:"manage_collection"`
 }
 
 func NewTeamResource() resource.Resource {
@@ -75,6 +77,18 @@ func (r *TeamResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"manage_state": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Allow to manage Terraform/OpenTofu state",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+			},
+			"manage_job": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Allow to manage and trigger jobs",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+			},
+			"manage_collection": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Allow to manage variables collection",
 				Computed:    true,
 				Default:     booldefault.StaticBool(false),
 			},
@@ -155,13 +169,15 @@ func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	bodyRequest := &client.TeamEntity{
-		Name:            plan.Name.ValueString(),
-		ManageState:     plan.ManageState.ValueBool(),
-		ManageWorkspace: plan.ManageWorkspace.ValueBool(),
-		ManageModule:    plan.ManageModule.ValueBool(),
-		ManageProvider:  plan.ManageProvider.ValueBool(),
-		ManageTemplate:  plan.ManageTemplate.ValueBool(),
-		ManageVcs:       plan.ManageVcs.ValueBool(),
+		Name:             plan.Name.ValueString(),
+		ManageState:      plan.ManageState.ValueBool(),
+		ManageWorkspace:  plan.ManageWorkspace.ValueBool(),
+		ManageModule:     plan.ManageModule.ValueBool(),
+		ManageProvider:   plan.ManageProvider.ValueBool(),
+		ManageTemplate:   plan.ManageTemplate.ValueBool(),
+		ManageVcs:        plan.ManageVcs.ValueBool(),
+		ManageJob:        plan.ManageJob.ValueBool(),
+		ManageCollection: plan.ManageCollection.ValueBool(),
 	}
 
 	var out = new(bytes.Buffer)
@@ -209,6 +225,8 @@ func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, r
 	plan.ManageVcs = types.BoolValue(newTeam.ManageVcs)
 	plan.ManageProvider = types.BoolValue(newTeam.ManageProvider)
 	plan.ManageTemplate = types.BoolValue(newTeam.ManageTemplate)
+	plan.ManageJob = types.BoolValue(newTeam.ManageJob)
+	plan.ManageCollection = types.BoolValue(newTeam.ManageCollection)
 
 	tflog.Info(ctx, "Team Resource Created", map[string]any{"success": true})
 
@@ -259,6 +277,8 @@ func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	state.ManageVcs = types.BoolValue(team.ManageVcs)
 	state.ManageProvider = types.BoolValue(team.ManageProvider)
 	state.ManageTemplate = types.BoolValue(team.ManageTemplate)
+	state.ManageJob = types.BoolValue(team.ManageJob)
+	state.ManageCollection = types.BoolValue(team.ManageCollection)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -281,14 +301,16 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	bodyRequest := &client.TeamEntity{
-		ManageState:     plan.ManageState.ValueBool(),
-		ManageWorkspace: plan.ManageWorkspace.ValueBool(),
-		ManageModule:    plan.ManageModule.ValueBool(),
-		ManageProvider:  plan.ManageProvider.ValueBool(),
-		ManageTemplate:  plan.ManageTemplate.ValueBool(),
-		ManageVcs:       plan.ManageVcs.ValueBool(),
-		ID:              state.ID.ValueString(),
-		Name:            state.Name.ValueString(),
+		ManageState:      plan.ManageState.ValueBool(),
+		ManageWorkspace:  plan.ManageWorkspace.ValueBool(),
+		ManageModule:     plan.ManageModule.ValueBool(),
+		ManageProvider:   plan.ManageProvider.ValueBool(),
+		ManageTemplate:   plan.ManageTemplate.ValueBool(),
+		ManageVcs:        plan.ManageVcs.ValueBool(),
+		ManageJob:        plan.ManageJob.ValueBool(),
+		ManageCollection: plan.ManageCollection.ValueBool(),
+		ID:               state.ID.ValueString(),
+		Name:             state.Name.ValueString(),
 	}
 
 	var out = new(bytes.Buffer)
@@ -357,6 +379,8 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	plan.ManageVcs = types.BoolValue(team.ManageVcs)
 	plan.ManageProvider = types.BoolValue(team.ManageProvider)
 	plan.ManageTemplate = types.BoolValue(team.ManageTemplate)
+	plan.ManageJob = types.BoolValue(team.ManageJob)
+	plan.ManageCollection = types.BoolValue(team.ManageCollection)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

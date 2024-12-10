@@ -14,14 +14,16 @@ Create a team and bind it to an organization. Allows for fined grained access ma
 
 ```terraform
 resource "terrakube_team" "team" {
-  name             = "TERRAKUBE_SUPER_ADMIN"
-  organization_id  = data.terrakube_organization.org.id
-  manage_state     = false
-  manage_workspace = false
-  manage_module    = false
-  manage_provider  = true
-  manage_vcs       = true
-  manage_template  = true
+  name              = "TERRAKUBE_SUPER_ADMIN"
+  organization_id   = data.terrakube_organization.org.id
+  manage_state      = false
+  manage_workspace  = false
+  manage_module     = false
+  manage_provider   = true
+  manage_vcs        = true
+  manage_template   = true
+  manage_job        = true
+  manage_collection = true
 }
 ```
 
@@ -35,6 +37,8 @@ resource "terrakube_team" "team" {
 
 ### Optional
 
+- `manage_collection` (Boolean) Allow to manage variables collection
+- `manage_job` (Boolean) Allow to manage and trigger jobs
 - `manage_module` (Boolean) Allow to manage modules
 - `manage_provider` (Boolean) Allow to manage providers
 - `manage_state` (Boolean) Allow to manage Terraform/OpenTofu state
