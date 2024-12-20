@@ -373,7 +373,7 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	plan.ID = types.StringValue(state.ID.ValueString())
-	plan.Name = types.StringValue(state.Name.ValueString())
+	plan.Name = types.StringValue(team.Name)
 	plan.ManageState = types.BoolValue(team.ManageState)
 	plan.ManageWorkspace = types.BoolValue(team.ManageWorkspace)
 	plan.ManageModule = types.BoolValue(team.ManageModule)
