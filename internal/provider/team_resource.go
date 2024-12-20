@@ -73,6 +73,9 @@ func (r *TeamResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "Team name",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"manage_state": schema.BoolAttribute{
 				Optional:    true,
