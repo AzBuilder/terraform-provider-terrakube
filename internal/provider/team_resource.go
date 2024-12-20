@@ -73,6 +73,9 @@ func (r *TeamResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "Team name",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"manage_state": schema.BoolAttribute{
 				Optional:    true,
@@ -271,6 +274,7 @@ func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
+	state.Name = types.StringValue(team.Name)
 	state.ManageState = types.BoolValue(team.ManageState)
 	state.ManageWorkspace = types.BoolValue(team.ManageWorkspace)
 	state.ManageModule = types.BoolValue(team.ManageModule)
@@ -372,7 +376,7 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	plan.ID = types.StringValue(state.ID.ValueString())
-	plan.Name = types.StringValue(state.Name.ValueString())
+	plan.Name = types.StringValue(team.Name)
 	plan.ManageState = types.BoolValue(team.ManageState)
 	plan.ManageWorkspace = types.BoolValue(team.ManageWorkspace)
 	plan.ManageModule = types.BoolValue(team.ManageModule)
