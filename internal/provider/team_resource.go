@@ -271,6 +271,7 @@ func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 
+	state.Name = types.StringValue(team.Name)
 	state.ManageState = types.BoolValue(team.ManageState)
 	state.ManageWorkspace = types.BoolValue(team.ManageWorkspace)
 	state.ManageModule = types.BoolValue(team.ManageModule)
