@@ -341,7 +341,7 @@ func (r *WorkspaceAccessResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	workspaceRequest, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/api/v1/organization/%s/workspace/%s/accesss/%s", r.endpoint, data.OrganizationId.ValueString(), data.WorkspaceId.ValueString(), data.ID.ValueString()), nil)
+	workspaceRequest, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/api/v1/organization/%s/workspace/%s/access/%s", r.endpoint, data.OrganizationId.ValueString(), data.WorkspaceId.ValueString(), data.ID.ValueString()), nil)
 	workspaceRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating Workspace access resource request", fmt.Sprintf("Error creating Workspace access resource request: %s", err))
