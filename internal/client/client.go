@@ -78,6 +78,14 @@ type WorkspaceVariableEntity struct {
 	Hcl         bool   `jsonapi:"attr,hcl"`
 }
 
+type WorkspaceAccessEntity struct {
+	ID              string `jsonapi:"primary,access"`
+	ManageState     bool   `jsonapi:"attr,manageState"`
+	ManageWorkspace bool   `jsonapi:"attr,manageWorkspace"`
+	ManageJob       bool   `jsonapi:"attr,manageJob"`
+	Name            string `jsonapi:"attr,name"`
+}
+
 type OrganizationVariableEntity struct {
 	ID          string `jsonapi:"primary,globalvar"`
 	Key         string `jsonapi:"attr,key"`
