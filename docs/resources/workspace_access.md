@@ -23,9 +23,9 @@ Manage workspace access.
 
 ### Optional
 
-- `manage_job` (Boolean) Allow to manage and trigger jobs
-- `manage_state` (Boolean) Allow to manage Terraform/OpenTofu state
-- `manage_workspace` (Boolean) Allow to manage workspaces
+- `manage_job` (Boolean) Allow to manage and trigger jobs (plan, apply, etc...).
+- `manage_state` (Boolean) Allow to manage Terraform/OpenTofu state (import, state rm, etc...).
+- `manage_workspace` (Boolean) Allow to manage workspaces (workspace deletion, description, etc...).
 
 ### Read-Only
 

@@ -10,6 +10,8 @@ description: |-
 
 Create a webhook attached to a workspace. Can be useful for automated apply/plan workflows.
 
+~> **NOTE:** In its current implementation, Terrakube creates one webhook for each instance of this resource and github has a default limitation of 20 webhooks per repository.
+
 ## Example Usage
 
 ```terraform
