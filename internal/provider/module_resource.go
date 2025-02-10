@@ -151,6 +151,7 @@ func (r *ModuleResource) Create(ctx context.Context, req resource.CreateRequest,
 		Description: plan.Description.ValueString(),
 		Provider:    plan.ProviderName.ValueString(),
 		Source:      plan.Source.ValueString(),
+		TagPrefix:   plan.TagPrefix.ValueStringPointer(),
 	}
 
 	if !plan.Folder.IsNull() {
@@ -319,6 +320,7 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 		Description: plan.Description.ValueString(),
 		Provider:    plan.ProviderName.ValueString(),
 		Source:      plan.Source.ValueString(),
+		TagPrefix:   plan.TagPrefix.ValueStringPointer(),
 	}
 
 	if !plan.Folder.IsNull() {
