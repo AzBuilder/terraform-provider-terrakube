@@ -151,7 +151,6 @@ func (r *ModuleResource) Create(ctx context.Context, req resource.CreateRequest,
 		Description: plan.Description.ValueString(),
 		Provider:    plan.ProviderName.ValueString(),
 		Source:      plan.Source.ValueString(),
-		TagPrefix:   plan.TagPrefix.ValueStringPointer(),
 	}
 
 	if !plan.Folder.IsNull() {
@@ -161,7 +160,7 @@ func (r *ModuleResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	if !plan.TagPrefix.IsNull() {
 		tflog.Info(ctx, fmt.Sprintf("Module using Tag Prefix: %s", plan.VcsId.ValueString()))
-		bodyRequest.Vcs = &client.VcsEntity{ID: plan.VcsId.ValueString()}
+		bodyRequest.TagPrefix = plan.TagPrefix.ValueStringPointer()
 	}
 
 	if !plan.VcsId.IsNull() {
@@ -320,7 +319,6 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 		Description: plan.Description.ValueString(),
 		Provider:    plan.ProviderName.ValueString(),
 		Source:      plan.Source.ValueString(),
-		TagPrefix:   plan.TagPrefix.ValueStringPointer(),
 	}
 
 	if !plan.Folder.IsNull() {
