@@ -114,6 +114,8 @@ type SshEntity struct {
 	ID          string `jsonapi:"primary,ssh"`
 	Name        string `jsonapi:"attr,name"`
 	Description string `jsonapi:"attr,description"`
+	PrivateKey  string `jsonapi:"attr,privateKey"`
+	SshType     string `jsonapi:"attr,sshType"`
 }
 
 type ModuleEntity struct {
