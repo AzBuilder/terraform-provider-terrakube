@@ -66,20 +66,20 @@ func (r *SshResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Description: "Terrakube organization ID",
 			},
 			"name": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Ssh key name",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"private_key": schema.StringAttribute{
-				Required:    true,
-				Computed:    true,
+				Optional:    true,
 				Sensitive:   true,
 				Description: "SSH Key content",
 			},
 			"ssh_type": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Default:     stringdefault.StaticString("rsa"),
 				Description: "SSH key type",
 				Validators: []validator.String{
