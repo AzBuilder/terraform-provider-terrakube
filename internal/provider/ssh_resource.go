@@ -72,6 +72,10 @@ func (r *SshResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"description": schema.StringAttribute{
+				Optional:    true,
+				Description: "SSH key description",
+			},
 			"private_key": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
@@ -172,7 +176,7 @@ func (r *SshResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	plan.ID = types.StringValue(newSshKey.ID)
 	plan.Name = types.StringValue(newSshKey.Name)
-	plan.PrivateKey = types.StringValue(newSshKey.PrivateKey)
+	plan.PrivateKey = types.StringValue(plan.PrivateKey.ValueString())
 	plan.SshType = types.StringValue(newSshKey.SshType)
 	plan.Description = types.StringValue(newSshKey.Description)
 	tflog.Info(ctx, "Ssh Key Resource Created", map[string]any{"success": true})
@@ -219,7 +223,7 @@ func (r *SshResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	tflog.Info(ctx, "Body Response", map[string]any{"bodyResponse": string(bodyResponse)})
 	state.Name = types.StringValue(sshKey.Name)
-	state.PrivateKey = types.StringValue(sshKey.PrivateKey)
+	state.PrivateKey = types.StringValue(state.PrivateKey.ValueString()) //value is not inside the response getting the value from the current state
 	state.SshType = types.StringValue(sshKey.SshType)
 	state.Description = types.StringValue(sshKey.Description)
 	state.ID = types.StringValue(sshKey.ID)
@@ -311,7 +315,7 @@ func (r *SshResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	plan.ID = types.StringValue(state.ID.ValueString())
 	plan.Name = types.StringValue(ssh.Name)
 	plan.Description = types.StringValue(ssh.Description)
-	plan.PrivateKey = types.StringValue(ssh.PrivateKey)
+	plan.PrivateKey = types.StringValue(plan.PrivateKey.ValueString())
 	plan.SshType = types.StringValue(ssh.SshType)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
