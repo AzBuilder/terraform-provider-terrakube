@@ -14,10 +14,10 @@ import (
 
 	"github.com/google/jsonapi"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -132,12 +132,12 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 				Optional:    true,
 				Description: "VCS connection ID for private workspaces",
 			},
-            "allow_remote_apply": schema.BoolAttribute{
-	            Optional:    true,
-	            Computed:    true,
-	            Default:     booldefault.StaticBool(false),
-	            Description: "Wether to allow remote apply. By default false to respect VCS philosophy.",
-            },
+			"allow_remote_apply": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+				Description: "Wether to allow remote apply. By default false to respect VCS philosophy.",
+			},
 		},
 	}
 }
@@ -472,7 +472,7 @@ func (r *WorkspaceVcsResource) Delete(ctx context.Context, req resource.DeleteRe
 		IaCVersion:       data.IaCVersion.ValueString(),
 		ExecutionMode:    data.ExecutionMode.ValueString(),
 		AllowRemoteApply: data.AllowRemoteApply.ValueBool(),
-		Deleted:       true,
+		Deleted:          true,
 	}
 
 	var out = new(bytes.Buffer)
