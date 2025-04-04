@@ -40,6 +40,7 @@ resource "terrakube_workspace_vcs" "sample1" {
 
 ### Optional
 
+- `allow_remote_apply` (Boolean) Wether to allow remote apply. By default false to respect VCS philosophy.
 - `branch` (String) Workspace VCS branch
 - `description` (String) Workspace VCS description
 - `execution_mode` (String) Workspace VCS execution mode (remote or local)

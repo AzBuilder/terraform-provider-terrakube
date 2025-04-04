@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -36,18 +37,19 @@ type WorkspaceVcsResource struct {
 }
 
 type WorkspaceVcsResourceModel struct {
-	ID             types.String `tfsdk:"id"`
-	Name           types.String `tfsdk:"name"`
-	OrganizationId types.String `tfsdk:"organization_id"`
-	Description    types.String `tfsdk:"description"`
-	IaCType        types.String `tfsdk:"iac_type"`
-	TemplateId     types.String `tfsdk:"template_id"`
-	IaCVersion     types.String `tfsdk:"iac_version"`
-	Repository     types.String `tfsdk:"repository"`
-	Branch         types.String `tfsdk:"branch"`
-	Folder         types.String `tfsdk:"folder"`
-	ExecutionMode  types.String `tfsdk:"execution_mode"`
-	VcsId          types.String `tfsdk:"vcs_id"`
+	ID               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	OrganizationId   types.String `tfsdk:"organization_id"`
+	Description      types.String `tfsdk:"description"`
+	IaCType          types.String `tfsdk:"iac_type"`
+	TemplateId       types.String `tfsdk:"template_id"`
+	IaCVersion       types.String `tfsdk:"iac_version"`
+	Repository       types.String `tfsdk:"repository"`
+	Branch           types.String `tfsdk:"branch"`
+	Folder           types.String `tfsdk:"folder"`
+	ExecutionMode    types.String `tfsdk:"execution_mode"`
+	VcsId            types.String `tfsdk:"vcs_id"`
+	AllowRemoteApply types.Bool   `tfsdk:"allow_remote_apply"`
 }
 
 func NewWorkspaceVcsResource() resource.Resource {
@@ -130,6 +132,12 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 				Optional:    true,
 				Description: "VCS connection ID for private workspaces",
 			},
+			"allow_remote_apply": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+				Description: "Wether to allow remote apply. By default false to respect VCS philosophy.",
+			},
 		},
 	}
 }
@@ -177,15 +185,16 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	bodyRequest := &client.WorkspaceEntity{
-		Name:          plan.Name.ValueString(),
-		Description:   plan.Description.ValueString(),
-		Source:        plan.Repository.ValueString(),
-		Branch:        plan.Branch.ValueString(),
-		IaCType:       plan.IaCType.ValueString(),
-		IaCVersion:    plan.IaCVersion.ValueString(),
-		Folder:        plan.Folder.ValueString(),
-		TemplateId:    plan.TemplateId.ValueString(),
-		ExecutionMode: plan.ExecutionMode.ValueString(),
+		Name:             plan.Name.ValueString(),
+		Description:      plan.Description.ValueString(),
+		Source:           plan.Repository.ValueString(),
+		Branch:           plan.Branch.ValueString(),
+		IaCType:          plan.IaCType.ValueString(),
+		IaCVersion:       plan.IaCVersion.ValueString(),
+		Folder:           plan.Folder.ValueString(),
+		TemplateId:       plan.TemplateId.ValueString(),
+		ExecutionMode:    plan.ExecutionMode.ValueString(),
+		AllowRemoteApply: plan.AllowRemoteApply.ValueBool(),
 	}
 
 	if !plan.VcsId.IsNull() {
@@ -241,6 +250,7 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 
 	plan.TemplateId = types.StringValue(newWorkspaceVcs.TemplateId)
 	plan.ExecutionMode = types.StringValue(newWorkspaceVcs.ExecutionMode)
+	plan.AllowRemoteApply = types.BoolValue(newWorkspaceVcs.AllowRemoteApply)
 
 	if !plan.VcsId.IsNull() {
 		plan.VcsId = types.StringValue(newWorkspaceVcs.Vcs.ID)
@@ -303,6 +313,7 @@ func (r *WorkspaceVcsResource) Read(ctx context.Context, req resource.ReadReques
 	state.TemplateId = types.StringValue(workspace.TemplateId)
 	state.IaCVersion = types.StringValue(workspace.IaCVersion)
 	state.ID = types.StringValue(workspace.ID)
+	state.AllowRemoteApply = types.BoolValue(workspace.AllowRemoteApply)
 
 	if workspace.Vcs != nil {
 		state.VcsId = types.StringValue(workspace.Vcs.ID)
@@ -329,16 +340,17 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	bodyRequest := &client.WorkspaceEntity{
-		IaCVersion:    plan.IaCVersion.ValueString(),
-		IaCType:       plan.IaCType.ValueString(),
-		ExecutionMode: plan.ExecutionMode.ValueString(),
-		Description:   plan.Description.ValueString(),
-		Source:        plan.Repository.ValueString(),
-		Branch:        plan.Branch.ValueString(),
-		Folder:        plan.Folder.ValueString(),
-		TemplateId:    plan.TemplateId.ValueString(),
-		Name:          plan.Name.ValueString(),
-		ID:            state.ID.ValueString(),
+		IaCVersion:       plan.IaCVersion.ValueString(),
+		IaCType:          plan.IaCType.ValueString(),
+		ExecutionMode:    plan.ExecutionMode.ValueString(),
+		Description:      plan.Description.ValueString(),
+		Source:           plan.Repository.ValueString(),
+		Branch:           plan.Branch.ValueString(),
+		Folder:           plan.Folder.ValueString(),
+		TemplateId:       plan.TemplateId.ValueString(),
+		Name:             plan.Name.ValueString(),
+		ID:               state.ID.ValueString(),
+		AllowRemoteApply: plan.AllowRemoteApply.ValueBool(),
 	}
 
 	if !plan.VcsId.IsNull() {
@@ -414,6 +426,7 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 	plan.ExecutionMode = types.StringValue(workspace.ExecutionMode)
 	plan.Folder = types.StringValue(workspace.Folder)
 	plan.TemplateId = types.StringValue(workspace.TemplateId)
+	plan.AllowRemoteApply = types.BoolValue(workspace.AllowRemoteApply)
 	if workspace.Vcs != nil {
 		plan.VcsId = types.StringValue(workspace.Vcs.ID)
 	}
@@ -449,16 +462,17 @@ func (r *WorkspaceVcsResource) Delete(ctx context.Context, req resource.DeleteRe
 	tflog.Info(ctx, fmt.Sprintf("%s_DEL_%s", data.Name.ValueString(), string(b)))
 
 	bodyRequest := &client.WorkspaceEntity{
-		ID:            data.ID.ValueString(),
-		Name:          fmt.Sprintf("%s_DEL_%s", data.Name.ValueString(), string(b)), // FORCE A NAME CHANGE WITH THE SAME LOGIC THAT IN THE UI
-		Description:   data.Description.ValueString(),
-		Source:        data.Repository.ValueString(),
-		Branch:        data.Branch.ValueString(),
-		IaCType:       data.IaCType.ValueString(),
-		TemplateId:    data.TemplateId.ValueString(),
-		IaCVersion:    data.IaCVersion.ValueString(),
-		ExecutionMode: data.ExecutionMode.ValueString(),
-		Deleted:       true,
+		ID:               data.ID.ValueString(),
+		Name:             fmt.Sprintf("%s_DEL_%s", data.Name.ValueString(), string(b)), // FORCE A NAME CHANGE WITH THE SAME LOGIC THAT IN THE UI
+		Description:      data.Description.ValueString(),
+		Source:           data.Repository.ValueString(),
+		Branch:           data.Branch.ValueString(),
+		IaCType:          data.IaCType.ValueString(),
+		TemplateId:       data.TemplateId.ValueString(),
+		IaCVersion:       data.IaCVersion.ValueString(),
+		ExecutionMode:    data.ExecutionMode.ValueString(),
+		AllowRemoteApply: data.AllowRemoteApply.ValueBool(),
+		Deleted:          true,
 	}
 
 	var out = new(bytes.Buffer)
