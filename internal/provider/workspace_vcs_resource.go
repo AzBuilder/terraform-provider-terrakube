@@ -135,7 +135,7 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 	            Optional:    true,
 	            Default:     booldefault.StaticBool(false),
 	            Description: "Wether to allow remote apply. By default false to respect VCS philosophy.",
-            }
+            },
 		},
 	}
 }
@@ -192,7 +192,7 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 		Folder:           plan.Folder.ValueString(),
 		TemplateId:       plan.TemplateId.ValueString(),
 		ExecutionMode:    plan.ExecutionMode.ValueString(),
-		allowRemoteApply: plan.allowRemoteApply.ValueBool()
+		allowRemoteApply: plan.allowRemoteApply.ValueBool(),
 	}
 
 	if !plan.VcsId.IsNull() {
@@ -348,7 +348,7 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 		TemplateId:       plan.TemplateId.ValueString(),
 		Name:             plan.Name.ValueString(),
 		ID:               state.ID.ValueString(),
-		allowRemoteApply: plan.allowRemoteApply.ValueBool()
+		allowRemoteApply: plan.allowRemoteApply.ValueBool(),
 	}
 
 	if !plan.VcsId.IsNull() {
@@ -469,7 +469,7 @@ func (r *WorkspaceVcsResource) Delete(ctx context.Context, req resource.DeleteRe
 		TemplateId:       data.TemplateId.ValueString(),
 		IaCVersion:       data.IaCVersion.ValueString(),
 		ExecutionMode:    data.ExecutionMode.ValueString(),
-		allowRemoteApply: data.allowRemoteApply.ValueBool()
+		allowRemoteApply: data.allowRemoteApply.ValueBool(),
 		Deleted:       true,
 	}
 
