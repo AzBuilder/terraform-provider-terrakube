@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/jsonapi"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -48,7 +49,7 @@ type WorkspaceVcsResourceModel struct {
 	Folder           types.String `tfsdk:"folder"`
 	ExecutionMode    types.String `tfsdk:"execution_mode"`
 	VcsId            types.String `tfsdk:"vcs_id"`
-	allowRemoteApply types.Bool   `tfsdk:"allowRemoteApply"`
+	AllowRemoteApply types.Bool   `tfsdk:"allow_remote_apply"`
 }
 
 func NewWorkspaceVcsResource() resource.Resource {
@@ -131,8 +132,9 @@ func (r *WorkspaceVcsResource) Schema(ctx context.Context, req resource.SchemaRe
 				Optional:    true,
 				Description: "VCS connection ID for private workspaces",
 			},
-            "allowRemoteApply": schema.BooleanAttribute{
+            "allow_remote_apply": schema.BoolAttribute{
 	            Optional:    true,
+	            Computed:    true,
 	            Default:     booldefault.StaticBool(false),
 	            Description: "Wether to allow remote apply. By default false to respect VCS philosophy.",
             },
@@ -192,7 +194,7 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 		Folder:           plan.Folder.ValueString(),
 		TemplateId:       plan.TemplateId.ValueString(),
 		ExecutionMode:    plan.ExecutionMode.ValueString(),
-		allowRemoteApply: plan.allowRemoteApply.ValueBool(),
+		AllowRemoteApply: plan.AllowRemoteApply.ValueBool(),
 	}
 
 	if !plan.VcsId.IsNull() {
@@ -248,7 +250,7 @@ func (r *WorkspaceVcsResource) Create(ctx context.Context, req resource.CreateRe
 
 	plan.TemplateId = types.StringValue(newWorkspaceVcs.TemplateId)
 	plan.ExecutionMode = types.StringValue(newWorkspaceVcs.ExecutionMode)
-	plan.allowRemoteApply = types.BoolValue(newWorkspaceVcs.allowRemoteApply)
+	plan.AllowRemoteApply = types.BoolValue(newWorkspaceVcs.AllowRemoteApply)
 
 	if !plan.VcsId.IsNull() {
 		plan.VcsId = types.StringValue(newWorkspaceVcs.Vcs.ID)
@@ -311,7 +313,7 @@ func (r *WorkspaceVcsResource) Read(ctx context.Context, req resource.ReadReques
 	state.TemplateId = types.StringValue(workspace.TemplateId)
 	state.IaCVersion = types.StringValue(workspace.IaCVersion)
 	state.ID = types.StringValue(workspace.ID)
-	state.allowRemoteApply = types.BoolValue(workspace.allowRemoteApply)
+	state.AllowRemoteApply = types.BoolValue(workspace.AllowRemoteApply)
 
 	if workspace.Vcs != nil {
 		state.VcsId = types.StringValue(workspace.Vcs.ID)
@@ -348,7 +350,7 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 		TemplateId:       plan.TemplateId.ValueString(),
 		Name:             plan.Name.ValueString(),
 		ID:               state.ID.ValueString(),
-		allowRemoteApply: plan.allowRemoteApply.ValueBool(),
+		AllowRemoteApply: plan.AllowRemoteApply.ValueBool(),
 	}
 
 	if !plan.VcsId.IsNull() {
@@ -424,7 +426,7 @@ func (r *WorkspaceVcsResource) Update(ctx context.Context, req resource.UpdateRe
 	plan.ExecutionMode = types.StringValue(workspace.ExecutionMode)
 	plan.Folder = types.StringValue(workspace.Folder)
 	plan.TemplateId = types.StringValue(workspace.TemplateId)
-	plan.allowRemoteApply = types.BoolValue(workspace.allowRemoteApply)
+	plan.AllowRemoteApply = types.BoolValue(workspace.AllowRemoteApply)
 	if workspace.Vcs != nil {
 		plan.VcsId = types.StringValue(workspace.Vcs.ID)
 	}
@@ -469,7 +471,7 @@ func (r *WorkspaceVcsResource) Delete(ctx context.Context, req resource.DeleteRe
 		TemplateId:       data.TemplateId.ValueString(),
 		IaCVersion:       data.IaCVersion.ValueString(),
 		ExecutionMode:    data.ExecutionMode.ValueString(),
-		allowRemoteApply: data.allowRemoteApply.ValueBool(),
+		AllowRemoteApply: data.AllowRemoteApply.ValueBool(),
 		Deleted:       true,
 	}
 
