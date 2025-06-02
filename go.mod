@@ -1,6 +1,6 @@
 module terraform-provider-terrakube
 
-go 1.21
+go 1.22.12
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
