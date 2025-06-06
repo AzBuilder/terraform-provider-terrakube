@@ -171,6 +171,52 @@ type WorkspaceWebhookEntity struct {
 	Event        string `jsonapi:"attr,event"`
 }
 
+type WorkspaceWebhookV2Entity struct {
+	ID           string           `jsonapi:"primary,webhook"`
+	CreatedBy    string           `jsonapi:"attr,createdBy"`
+	CreatedDate  string           `jsonapi:"attr,createdDate"`
+	RemoteHookId string           `jsonapi:"attr,remoteHookId"`
+	UpdatedBy    string           `jsonapi:"attr,updatedBy"`
+	UpdatedDate  string           `jsonapi:"attr,updatedDate"`
+	Events       []WebhookEvent   `jsonapi:"relation,events,omitempty"`
+	Workspace    *WorkspaceEntity `jsonapi:"relation,workspace,omitempty"`
+}
+
+type WebhookEvent struct {
+	Type string `jsonapi:"primary,webhook_event"`
+	ID   string `jsonapi:"attr,id"`
+}
+
+type WebhookEventData struct {
+	Type string `json:"type"`
+	ID   string `json:"id"`
+}
+
+type WebhookEventRelationship struct {
+	Data []WebhookEventData `json:"data"`
+}
+
+type WebhookWorkspaceRelationship struct {
+	Data struct {
+		Type string `json:"type"`
+		ID   string `json:"id"`
+	} `json:"data"`
+}
+
+type WorkspaceWebhookEventEntity struct {
+	ID          string `jsonapi:"primary,webhook_event"`
+	Branch      string `jsonapi:"attr,branch"`
+	CreatedBy   string `jsonapi:"attr,createdBy"`
+	CreatedDate string `jsonapi:"attr,createdDate"`
+	Event       string `jsonapi:"attr,event"`
+	Path        string `jsonapi:"attr,path"`
+	Priority    int32  `jsonapi:"attr,priority"`
+	TemplateId  string `jsonapi:"attr,templateId"`
+	UpdatedBy   string `jsonapi:"attr,updatedBy"`
+	UpdatedDate string `jsonapi:"attr,updatedDate"`
+	Webhook     string `jsonapi:"relation,webhook,omitempty"`
+}
+
 type WorkspaceScheduleEntity struct {
 	ID         string `jsonapi:"primary,schedule"`
 	Schedule   string `jsonapi:"attr,cron"`
