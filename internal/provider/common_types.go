@@ -13,4 +13,4 @@ type AtomicOperationResponse struct {
 			ID   string `json:"id"`
 		} `json:"data"`
 	} `json:"atomic:results"`
-} 
+}

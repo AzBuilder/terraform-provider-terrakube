@@ -5,12 +5,13 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"strings"
-	"html"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -34,13 +34,13 @@ type WorkspaceWebhookEventResource struct {
 }
 
 type WorkspaceWebhookEventResourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	WebhookId   types.String `tfsdk:"webhook_id"`
-	Event       types.String `tfsdk:"event"`
-	Branch      types.List   `tfsdk:"branch"`
-	Path        types.List   `tfsdk:"path"`
-	Priority    types.Int64  `tfsdk:"priority"`
-	TemplateId  types.String `tfsdk:"template_id"`
+	ID         types.String `tfsdk:"id"`
+	WebhookId  types.String `tfsdk:"webhook_id"`
+	Event      types.String `tfsdk:"event"`
+	Branch     types.List   `tfsdk:"branch"`
+	Path       types.List   `tfsdk:"path"`
+	Priority   types.Int64  `tfsdk:"priority"`
+	TemplateId types.String `tfsdk:"template_id"`
 }
 
 type webhookEventAPIResponse struct {
@@ -253,7 +253,7 @@ func (r *WorkspaceWebhookEventResource) Create(ctx context.Context, req resource
 	atomicOperation := map[string]interface{}{
 		"atomic:operations": []map[string]interface{}{
 			{
-				"op":  "add",
+				"op":   "add",
 				"href": fmt.Sprintf("/webhook/%s/events", plan.WebhookId.ValueString()),
 				"data": map[string]interface{}{
 					"type": "webhook_event",
@@ -370,78 +370,6 @@ func (r *WorkspaceWebhookEventResource) Create(ctx context.Context, req resource
 	result := atomicResp.AtomicResults[0]
 	plan.ID = types.StringValue(result.Data.ID)
 
-	// Read the created webhook event to get all attributes
-	request, err = http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/webhook/%s", r.endpoint, plan.WebhookId.ValueString()), nil)
-	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.token))
-	request.Header.Add("Content-Type", "application/vnd.api+json")
-	if err != nil {
-		resp.Diagnostics.AddError("Error creating webhook event read request", fmt.Sprintf("Error creating webhook event read request: %s", err))
-		return
-	}
-
-	response, err = r.client.Do(request)
-	if err != nil {
-		resp.Diagnostics.AddError("Error executing webhook event read request", fmt.Sprintf("Error executing webhook event read request: %s", err))
-		return
-	}
-
-	bodyResponse, err = io.ReadAll(response.Body)
-	if err != nil {
-		resp.Diagnostics.AddError("Error reading webhook event response", fmt.Sprintf("Error reading webhook event response: %s", err))
-		return
-	}
-
-	tflog.Debug(ctx, "Read webhook event response", map[string]any{
-		"status_code": response.StatusCode,
-		"body":        string(bodyResponse),
-	})
-
-	if response.StatusCode == http.StatusNotFound {
-		// If we can't read the event, use the plan values
-		plan.Path = plan.Path
-		plan.Branch = plan.Branch
-		plan.TemplateId = plan.TemplateId
-		plan.Event = plan.Event
-		plan.Priority = plan.Priority
-	} else {
-		var webhookResp webhookAPIResponse
-		err = json.Unmarshal(bodyResponse, &webhookResp)
-		if err != nil {
-			tflog.Error(ctx, "Failed to parse webhook event response", map[string]any{
-				"error": err.Error(),
-				"body":  string(bodyResponse),
-			})
-			resp.Diagnostics.AddError("Error unmarshal payload response", fmt.Sprintf("Error unmarshal payload response: %s", err))
-			return
-		}
-
-		// Check if the event exists in the webhook's events relationship
-		eventFound := false
-		for _, event := range webhookResp.Data.Relationships.Events.Data {
-			if event.ID == result.Data.ID {
-				eventFound = true
-				break
-			}
-		}
-
-		if !eventFound {
-			// If we can't find the event in the list, use the plan values
-			plan.Path = plan.Path
-			plan.Branch = plan.Branch
-			plan.TemplateId = plan.TemplateId
-			plan.Event = plan.Event
-			plan.Priority = plan.Priority
-		} else {
-			// Since we can't get the full event details from the webhook response,
-			// we'll use the plan values as they should match what we just created
-			plan.Path = plan.Path
-			plan.Branch = plan.Branch
-			plan.TemplateId = plan.TemplateId
-			plan.Event = plan.Event
-			plan.Priority = plan.Priority
-		}
-	}
-
 	tflog.Info(ctx, "Workspace Webhook Event Resource Created", map[string]any{"success": true})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -514,8 +442,8 @@ func (r *WorkspaceWebhookEventResource) Delete(ctx context.Context, req resource
 	atomicOperation := map[string]interface{}{
 		"atomic:operations": []map[string]interface{}{
 			{
-				"op":  "remove",
-				"href": fmt.Sprintf("/webhook/%s/events/%s", 
+				"op": "remove",
+				"href": fmt.Sprintf("/webhook/%s/events/%s",
 					data.WebhookId.ValueString(),
 					data.ID.ValueString()),
 			},
@@ -890,8 +818,8 @@ func (r *WorkspaceWebhookEventResource) Update(ctx context.Context, req resource
 	atomicOperation := map[string]interface{}{
 		"atomic:operations": []map[string]interface{}{
 			{
-				"op":  "update",
-				"href": fmt.Sprintf("/organization/%s/workspace/%s/webhook/%s/events/%s", 
+				"op": "update",
+				"href": fmt.Sprintf("/organization/%s/workspace/%s/webhook/%s/events/%s",
 					organizationId,
 					workspaceId,
 					state.WebhookId.ValueString(),
@@ -1009,8 +937,8 @@ func (r *WorkspaceWebhookEventResource) Update(ctx context.Context, req resource
 	}
 
 	// Read the updated webhook event to get all attributes
-	request, err = http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/organization/%s/workspace/%s/webhook/%s/events", 
-		r.endpoint, 
+	request, err = http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v1/organization/%s/workspace/%s/webhook/%s/events",
+		r.endpoint,
 		organizationId,
 		workspaceId,
 		state.WebhookId.ValueString()), nil)

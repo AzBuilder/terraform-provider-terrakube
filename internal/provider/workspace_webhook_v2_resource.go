@@ -33,7 +33,7 @@ type WorkspaceWebhookV2Resource struct {
 }
 
 type WorkspaceWebhookV2ResourceModel struct {
-	ID           types.String `tfsdk:"id"`
+	ID             types.String `tfsdk:"id"`
 	OrganizationId types.String `tfsdk:"organization_id"`
 	WorkspaceId    types.String `tfsdk:"workspace_id"`
 	RemoteHookId   types.String `tfsdk:"remote_hook_id"`
@@ -126,7 +126,7 @@ func (r *WorkspaceWebhookV2Resource) Create(ctx context.Context, req resource.Cr
 	atomicOperation := map[string]interface{}{
 		"atomic:operations": []map[string]interface{}{
 			{
-				"op":  "add",
+				"op":   "add",
 				"href": fmt.Sprintf("/organization/%s/workspace/%s/webhook", plan.OrganizationId.ValueString(), plan.WorkspaceId.ValueString()),
 				"data": map[string]interface{}{
 					"type": "webhook",
@@ -246,7 +246,7 @@ func (r *WorkspaceWebhookV2Resource) Create(ctx context.Context, req resource.Cr
 	plan.RemoteHookId = types.StringValue(result.Data.ID) // Using ID as RemoteHookId since it's not in the response
 
 	tflog.Debug(ctx, "Successfully created webhook", map[string]any{
-		"id":            result.Data.ID,
+		"id":             result.Data.ID,
 		"remote_hook_id": result.Data.ID,
 	})
 
